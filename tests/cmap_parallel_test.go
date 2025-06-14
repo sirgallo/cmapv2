@@ -8,25 +8,25 @@ import (
 	"github.com/sirgallo/cmapv2"
 )
 
-var parallelTestMap *cmap.CMap
+var parallelTestMap *cmap.ShardedMap
 var pInputSize int
 var initKeyValPairs []KeyVal
 var pKeyValPairs []KeyVal
 
 func init() {
-	parallelTestMap = cmap.NewCMap()
-	pInputSize = 100000
+	parallelTestMap = cmap.NewShardedMap()
+	pInputSize = 1000000
 	initKeyValPairs = make([]KeyVal, pInputSize)
 	pKeyValPairs = make([]KeyVal, pInputSize)
 
 	for idx := range initKeyValPairs {
-		iRandomBytes, _ := GenerateRandomBytes(32)
-		initKeyValPairs[idx] = KeyVal{ Key: iRandomBytes, Value: iRandomBytes }
+		iRandomBytes, _ := generateRandomBytes(128)
+		initKeyValPairs[idx] = KeyVal{Key: iRandomBytes, Value: iRandomBytes}
 	}
 
 	for idx := range pKeyValPairs {
-		pRandomBytes, _ := GenerateRandomBytes(32)
-		pKeyValPairs[idx] = KeyVal{ Key: pRandomBytes, Value: pRandomBytes }
+		pRandomBytes, _ := generateRandomBytes(128)
+		pKeyValPairs[idx] = KeyVal{Key: pRandomBytes, Value: pRandomBytes}
 	}
 
 	var initMapWG sync.WaitGroup
@@ -42,12 +42,11 @@ func init() {
 }
 
 func TestParallelReadWrites(t *testing.T) {
-	workerCount := 20
 	t.Run("test init key val pairs in map", func(t *testing.T) {
 		t.Parallel()
 		runWithWorkers(initKeyValPairs, workerCount, func(val KeyVal) {
 			value := parallelTestMap.Get(val.Key)
-			if ! bytes.Equal(value, val.Value) {
+			if !bytes.Equal(value, val.Value) {
 				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
 			}
 		})

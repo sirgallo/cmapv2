@@ -7,10 +7,17 @@ import (
 	"unsafe"
 )
 
+func (sMap *ShardedMap) Put(key []byte, value []byte) bool {
+	shard := sMap.getShard(key)
+	return shard.Put(key, value)
+}
+
 func (cMap *CMap) Put(key []byte, value []byte) bool {
 	for {
 		completed := cMap.putRecursive(&cMap.Root, key, value, 0, 0)
-		if completed { return true }
+		if completed {
+			return true
+		}
 		runtime.Gosched()
 	}
 }
@@ -52,6 +59,11 @@ func (cMap *CMap) putRecursive(node *unsafe.Pointer, key []byte, value []byte, h
 	}
 }
 
+func (sMap *ShardedMap) Get(key []byte) []byte {
+	shard := sMap.getShard(key)
+	return shard.Get(key)
+}
+
 func (cMap *CMap) Get(key []byte) []byte {
 	return cMap.getRecursive(&cMap.Root, key, 0, 0)
 }
@@ -75,10 +87,17 @@ func (cMap *CMap) getRecursive(node *unsafe.Pointer, key []byte, hash uint32, le
 	}
 }
 
+func (sMap *ShardedMap) Delete(key []byte) bool {
+	shard := sMap.getShard(key)
+	return shard.Delete(key)
+}
+
 func (cMap *CMap) Delete(key []byte) bool {
 	for {
 		completed := cMap.deleteRecursive(&cMap.Root, key, 0, 0)
-		if completed { return true }
+		if completed {
+			return true
+		}
 		runtime.Gosched()
 	}
 }

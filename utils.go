@@ -9,7 +9,7 @@ import (
 )
 
 func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
-	if level % cMap.HashChunks == 0 || hash == 0 {
+	if level%cMap.HashChunks == 0 || hash == 0 {
 		currChunk := level / cMap.HashChunks
 		seed := uint32(currChunk + 1)
 		return Murmur32(key, seed)
@@ -66,7 +66,6 @@ func (cMap *CMap) printChildrenRecursive(node *unsafe.Pointer, level int) {
 	for idx, child := range currNode.Children {
 		if child != nil {
 			fmt.Printf("Level: %d, Index: %d, Key: %s, Value: %v\n", level, idx, child.Key, child.Value)
-
 			childPtr := unsafe.Pointer(child)
 			cMap.printChildrenRecursive(&childPtr, level+1)
 		}

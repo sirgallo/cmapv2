@@ -1,8 +1,8 @@
 package cmapv2tests
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 
 	"github.com/sirgallo/cmapv2"
 )
@@ -13,10 +13,10 @@ func TestCMapUtils32(t *testing.T) {
 		seed := uint32(1)
 		key1 := []byte("hello")
 		hash1 := cmap.Murmur32(key1, seed)
-	
+
 		fmt.Printf("hash 1: %032b\n:", hash1)
 		expectedValues1 := []int{20, 11, 2, 20, 21, 23}
-	
+
 		for idx, val := range expectedValues1 {
 			index := cmap.GetIndex(hash1, chunkSize, idx)
 			t.Logf("index: %d, expected: %d", index, val)
@@ -24,12 +24,12 @@ func TestCMapUtils32(t *testing.T) {
 				t.Error("index produced does not match expected value")
 			}
 		}
-	
+
 		key2 := []byte("new")
 		hash2 := cmap.Murmur32(key2, seed)
 		fmt.Printf("hash 2: %032b\n:", hash2)
 		expectedValues2 := []int{16, 12, 18, 25, 29, 22}
-	
+
 		for idx, val := range expectedValues2 {
 			index := cmap.GetIndex(hash2, chunkSize, idx)
 			t.Logf("index: %d, expected: %d", index, val)
@@ -46,7 +46,7 @@ func TestCMapUtils32(t *testing.T) {
 		fmt.Printf("current bitmap: %032b\n", bitmap)
 
 		isBitSet1 := cmap.IsBitSet(bitmap, index1)
-		if ! isBitSet1 {
+		if !isBitSet1 {
 			t.Error("bit at index 1 is not set")
 		}
 
@@ -54,7 +54,7 @@ func TestCMapUtils32(t *testing.T) {
 		bitmap = cmap.SetBit(bitmap, index5)
 		fmt.Printf("current bitmap: %032b\n", bitmap)
 		isBitSet5 := cmap.IsBitSet(bitmap, index5)
-		if ! isBitSet5 {
+		if !isBitSet5 {
 			t.Error("bit at index 5 is not set")
 		}
 	})
@@ -67,17 +67,17 @@ func TestCMapUtils32(t *testing.T) {
 ** STILL GOOD FOR REF **
 
           0     1     2     3     4     5    extra
-hello = 01001 11110 01111 10010 11001 01010 11 
+hello = 01001 11110 01111 10010 11001 01010 11
 ignore last bit
 
-level 0 = 01001 = 9 
+level 0 = 01001 = 9
 level 1 = 11110 = 30
 level 2 = 01111 = 15
 level 3 = 10010 = 18
 level 4 = 11001 = 25
 level 5 = 01010 = 10
 
-so at each shift 
+so at each shift
 
 shift 27
 level 0 = 00000 00000 00000 00000 00000 00010 01  --> shifted 27

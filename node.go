@@ -3,15 +3,15 @@ package cmap
 func (cMap *CMap) NewLNode(key []byte, value []byte) *Node {
 	return &Node{
 		IsLeaf: true,
-		Key: key,
-		Value: value,
+		Key:    key,
+		Value:  value,
 	}
 }
 
 func (cMap *CMap) NewINode() *Node {
 	return &Node{
-		IsLeaf: false,
-		Bitmap: 0,
+		IsLeaf:   false,
+		Bitmap:   0,
 		Children: []*Node{},
 	}
 }

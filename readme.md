@@ -32,6 +32,14 @@ func main() {
 
   // delete key/val pair
   cMap.Delete([]byte("hi"))
+
+  // ===== OR
+
+  // initialize sharded c map
+  sMap := cmap.NewShardedMap(16)
+  sMap.Put([]byte("hi"), []byte("world"))
+  val := sMap.Get([]byte("hi"))
+  sMap.Delete([]byte("hi"))
 }
 ```
 

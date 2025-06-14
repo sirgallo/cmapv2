@@ -1,6 +1,5 @@
 # CMap
 
-
 ## Data Structure 
 
 ### CTrie
@@ -17,11 +16,9 @@ cMap := cmap.NewCMap[uint32]()
 cMap := cmap.NewCMap[uint64]()
 ```
 
-
 ## Design
 
 The design takes the basic algorithm for `HAMT`, and adds in `CAS` to insert/delete new values. A thread will modify an element at the point in time it loads it, and if the compare and swap operation fails, the update is discarded and the operation will start back at the root of the trie and traverse the path through to reattempt to add/delete the element.
-
 
 ## Background
 
@@ -30,19 +27,15 @@ Purely out of curiousity, I stumbled across the idea of `Hash Array Mapped Tries
 
 ## Hash Array Mapped Trie
 
-
 ### Overview
 
 A `Hash Array Mapped Trie` is a memory efficient data structure that can be used to implement maps (associative arrays) and sets. HAMTs, when implemented with path copying and garbage collection, become persistent as well, which means that any function that utilizes them becomes pure (essentially, the data structure becomes immutable).
-
 
 #### Why use a HAMT?
 
 HAMTs can be useful to implement maps and sets in situations where you want memory efficiency. They also are dynamically sized, unlike other map implementations where the map needs to be resized.
 
-
 ### Design
-
 
 #### Data Structure
 
@@ -78,11 +71,9 @@ The basic idea of the HAMT is that the key is hashed. At each level within the H
 
 Time Complexity for operations Search, Insert, and Delete on an order 32 HAMT is O(log32n), which is close to hash table time complexity.
 
-
 #### Hashing
 
 Keys in the trie are first hashed before an operation occurs on them, using the [Murmur](./Murmur.md) non-cryptographic hash function, which has also been implemented within the package. This creates a uint32 or uint64 value which is then used to index the key within the trie structure.
-
 
 #### Array Mapping
 
@@ -91,30 +82,21 @@ Using the hash from the hashed key, we can determine:
 1. The index in the sparse index
 2. The index in the actual dense array where the node is stored
 
-
 ##### Sparse Index
 
 Each node contains a sparse index for the mapped nodes in a uint32 bit map. 
 
 To calculate the index:
 ```go
-func GetIndex[T uint32 | uint64](hash T, chunkSize int, level int) int {
+func GetIndex(hash uint32, chunkSize int, level int) int {
 	slots := int(math.Pow(float64(2), float64(chunkSize)))
 	shiftSize := slots - (chunkSize * (level + 1))
-
-	switch any(hash).(type) {
-		case uint64:
-			mask := uint64(slots - 1)
-			return int((uint64)(hash) >> shiftSize & mask)
-		default:
-			mask := uint32(slots - 1)
-			return int((uint32)(hash) >> shiftSize & mask)
-	}
+	mask := uint32(slots - 1)
+	return int(hash >> shiftSize & mask)
 }
 ```
 
 Using bitwise operators, we can get the index at a particular level in the trie by shifting the hash over the chunk size t, and then apply a mask to the shifted hash to return an index mapped in the sparse index. Non-zero values in the sparse index represent indexes where nodes are populated.
-
 
 ##### Dense Index
 
@@ -122,13 +104,8 @@ To limit table size and create dynamically sized tables to limit memory usage (i
 
 In go, we can utilize the `math/bits` package to calculate the hamming weight efficiently:
 ```go
-func calculateHammingWeight[T uint32 | uint64](bitmap T) int {
-	switch any(bitmap).(type) {
-		case uint64:
-			return bits.OnesCount64((uint64)(bitmap))
-		default:
-			return bits.OnesCount32((uint32)(bitmap))
-	}
+func calculateHammingWeight(bitmap uint32) int {
+	return bits.OnesCount32(bitmap)
 }
 ```
 
@@ -146,67 +123,52 @@ hammingWeight(uint32 bits):
 
 to calculate position:
 ```go
-func (cMap *CMap[T]) getPosition(bitMap T, hash T, level int) int {
+func (cMap *CMap) getPosition(bitMap uint32, hash uint32, level int) int {
 	sparseIdx := GetIndexForLevel(hash, cMap.BitChunkSize, level, cMap.HashChunks)
-
-	switch any(bitMap).(type) {
-		case uint64:
-			mask := uint64((1 << sparseIdx) - 1)
-			isolatedBits := (uint64)(bitMap) & mask
-			return calculateHammingWeight(isolatedBits)
-		default:
-			mask := uint32((1 << sparseIdx) - 1)
-			isolatedBits := (uint32)(bitMap) & mask
-			return calculateHammingWeight(isolatedBits)
-	}
+	mask := uint32((1 << sparseIdx) - 1)
+	isolatedBits := bitMap & mask
+	return calculateHammingWeight(isolatedBits)
 }
 ```
 
 `isolatedBits` is all of the non-zero bits right of the index, which can be calculated by is applying a mask to the bitMap at that particular node. The mask is calculated from all of from the start of the sparse index right.
 
-
 #### Table Resizing
-
 
 ##### Extend Table
 
 When a position in the new table is calculated for an inserted element, the original table needs to be resized, and a new row at that particular location will be added, maintaining the sorted nature from the sparse index. This is done using go array slices, and copying elements from the original to the new table.
 
 ```go
-func ExtendTable[T uint32 | uint64](orig []*Node[T], bitMap T, pos int, newNode *Node[T]) []*Node[T] {
+func ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
 	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*Node[T], tableSize)
+	newTable := make([]*Node, tableSize)
 
 	copy(newTable[:pos], orig[:pos])
 	newTable[pos] = newNode
-	copy(newTable[pos + 1:], orig[pos:])
-
+	copy(newTable[pos+1:], orig[pos:])
 	return newTable
 }
 ```
-
 
 ##### Shrink Table
 
 Similarly to extending, shrinking a table will remove a row at a particular index and then copy elements from the original table over to the new table.
 
 ```go
-func ShrinkTable[T uint32 | uint64](orig []*Node[T], bitMap T, pos int) []*Node[T] {
+func ShrinkTable(orig []*Node, bitMap uint32, pos int) []*Node {
 	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*Node[T], tableSize)
+	newTable := make([]*Node, tableSize)
 
 	copy(newTable[:pos], orig[:pos])
-	copy(newTable[pos:], orig[pos + 1:])
-
+	copy(newTable[pos:], orig[pos+1:])
 	return newTable
 }
 ```
 
-
 #### Path Copying
 
 This CTrie implements full path copying. As an operation traverses down the path to the key, on inserts/deletes it will make a copy of the current node and modify the copy instead of modifying the node in place. This makes the CTrie [persistent](https://en.wikipedia.org/wiki/Persistent_data_structure). The modified node causes all parent nodes to point to it by cascading the changes up the path back to the root of the trie. This is done by passing a copy of the node being looked at, and then performing compare and swap back up the path. If the compare and swap operation fails, the copy is discarded and the operation retries back at the root.
-
 
 #### Hash Exhaustion
 
@@ -215,39 +177,21 @@ Since the 32 bit hash only has 6 chunks of 5 bits, the Ctrie is capped at 6 leve
 The 64 bit hash has also been implemented, with 10 chunks of 6 bits. 
 
 ```go
-func (cMap *CMap[T, V]) CalculateHashForCurrentLevel(key string, level int) V {
-	currChunk := level / cMap.HashChunks
-
-	var v V 
-	switch any(v).(type) {
-		case uint64:
-			seed := uint64(currChunk + 1)
-			return (V)(Murmur64(key, seed))
-		default:
-			seed := uint32(currChunk + 1)
-			return (V)(Murmur32(key, seed))
+func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
+	if level%cMap.HashChunks == 0 || hash == 0 {
+		currChunk := level / cMap.HashChunks
+		seed := uint32(currChunk + 1)
+		return Murmur32(key, seed)
 	}
+
+	return hash
 }
 ```
 
 ```go
-func GetIndexForLevel[V uint32 | uint64](hash V, chunkSize int, level int, hashChunks int) int {
+func GetIndexForLevel(hash uint32, chunkSize int, level int, hashChunks int) int {
 	updatedLevel := level % hashChunks
 	return GetIndex(hash, chunkSize, updatedLevel)
-}
-
-func GetIndex[V uint32 | uint64](hash V, chunkSize int, level int) int {
-	slots := int(math.Pow(float64(2), float64(chunkSize)))
-	shiftSize := slots - (chunkSize * (level + 1))
-
-	switch any(hash).(type) {
-		case uint64:
-			mask := uint64(slots - 1)
-			return int((uint64)(hash) >> shiftSize & mask)
-		default:
-			mask := uint32(slots - 1)
-			return int((uint32)(hash) >> shiftSize & mask)
-	}
 }
 ```
 
@@ -257,7 +201,6 @@ The seed value is just the `uint32` or `uint64` representation of the current ch
 
 
 ## Algorithms For Operations
-
 
 ### Insert
 
@@ -277,7 +220,6 @@ Pseudo-code:
         c.) if the node is an internal node, recursively move into that branch and repeat 2
 ```
 
-
 ### Retrieve
 
 Pseudo-code:
@@ -289,7 +231,6 @@ Pseudo-code:
       a.) if the node at the index in the dense array is a leaf node, and the keys match, return the value
       b.) otherwise, recurse down a level and repeat 2
 ```
-
 
 ### Delete
 
@@ -303,11 +244,9 @@ Pseudo-code:
       b.) otherwise, recurse down a level since we are at an internal node
 ```
 
-
 ## Sources
 
 [CMap](../CMap.go)
-
 
 ## Refs
 

@@ -5,21 +5,24 @@ import (
 	"sync"
 )
 
+var workerCount int = 1
+
 type KeyVal struct {
-	Key []byte
+	Key   []byte
 	Value []byte
 }
 
-func GenerateRandomBytes(length int) ([]byte, error) {
+func generateRandomBytes(length int) ([]byte, error) {
 	randomBytes := make([]byte, length)
 	_, err := rand.Read(randomBytes)
-	if err != nil { return nil, err }
+	if err != nil {
+		return nil, err
+	}
 	return randomBytes, nil
 }
 
 func runWithWorkers(pairs []KeyVal, workerCount int, fn func(KeyVal)) {
 	jobs := make(chan KeyVal, len(pairs))
-
 	var wg sync.WaitGroup
 	for i := 0; i < workerCount; i++ {
 		wg.Add(1)
@@ -34,6 +37,7 @@ func runWithWorkers(pairs []KeyVal, workerCount int, fn func(KeyVal)) {
 	for _, pair := range pairs {
 		jobs <- pair
 	}
+
 	close(jobs)
 	wg.Wait()
 }
