@@ -17,14 +17,6 @@ func (cMap *CMap) NewINode() *Node {
 }
 
 func (cMap *CMap) CopyNode(node *Node) *Node {
-	/*
-	nodeCopy := cMap.Pool.getNode()
-	nodeCopy.Key = node.Key
-	nodeCopy.Value = node.Value
-	nodeCopy.IsLeaf = node.IsLeaf
-	nodeCopy.Bitmap = node.Bitmap
-	nodeCopy.Children = make([]*Node, len(node.Children))
-	*/
 	nodeCopy := &Node{}
 	nodeCopy.Key = node.Key
 	nodeCopy.Value = node.Value

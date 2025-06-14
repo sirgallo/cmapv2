@@ -9,13 +9,13 @@ import (
 )
 
 func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
-	if level % 6 != 0 {
-		return hash
+	if level % cMap.HashChunks == 0 || hash == 0 {
+		currChunk := level / cMap.HashChunks
+		seed := uint32(currChunk + 1)
+		return Murmur32(key, seed)
 	}
-	
-	currChunk := level / cMap.HashChunks
-	seed := uint32(currChunk + 1)
-	return Murmur32(key, seed)
+
+	return hash
 }
 
 func (cMap *CMap) getSparseIndex(hash uint32, level int) int {

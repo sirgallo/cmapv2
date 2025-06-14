@@ -2,15 +2,16 @@ package cmap
 
 import (
 	"bytes"
+	"runtime"
 	"sync/atomic"
 	"unsafe"
 )
 
 func (cMap *CMap) Put(key []byte, value []byte) bool {
 	for {
-		hash := cMap.CalculateHashForCurrentLevel(key, 0, 0)
-		completed := cMap.putRecursive(&cMap.Root, key, value, hash, 0)
+		completed := cMap.putRecursive(&cMap.Root, key, value, 0, 0)
 		if completed { return true }
+		runtime.Gosched()
 	}
 }
 
@@ -36,8 +37,9 @@ func (cMap *CMap) putRecursive(node *unsafe.Pointer, key []byte, value []byte, h
 			} else {
 				newINode := cMap.NewINode()
 				iNodePtr := unsafe.Pointer(newINode)
-				cMap.putRecursive(&iNodePtr, childNode.Key, childNode.Value, hash, level+1)
+				cMap.putRecursive(&iNodePtr, childNode.Key, childNode.Value, 0, level+1)
 				cMap.putRecursive(&iNodePtr, key, value, hash, level+1)
+
 				nodeCopy.Children[pos] = (*Node)(atomic.LoadPointer(&iNodePtr))
 				return cMap.compareAndSwap(node, currNode, nodeCopy)
 			}
@@ -51,8 +53,7 @@ func (cMap *CMap) putRecursive(node *unsafe.Pointer, key []byte, value []byte, h
 }
 
 func (cMap *CMap) Get(key []byte) []byte {
-	hash := cMap.CalculateHashForCurrentLevel(key, 0, 0)
-	return cMap.getRecursive(&cMap.Root, key, hash, 0)
+	return cMap.getRecursive(&cMap.Root, key, 0, 0)
 }
 
 func (cMap *CMap) getRecursive(node *unsafe.Pointer, key []byte, hash uint32, level int) []byte {
@@ -76,9 +77,9 @@ func (cMap *CMap) getRecursive(node *unsafe.Pointer, key []byte, hash uint32, le
 
 func (cMap *CMap) Delete(key []byte) bool {
 	for {
-		hash := cMap.CalculateHashForCurrentLevel(key, 0, 0)
-		completed := cMap.deleteRecursive(&cMap.Root, key, hash, 0)
+		completed := cMap.deleteRecursive(&cMap.Root, key, 0, 0)
 		if completed { return true }
+		runtime.Gosched()
 	}
 }
 
@@ -115,9 +116,5 @@ func (cMap *CMap) deleteRecursive(node *unsafe.Pointer, key []byte, hash uint32,
 }
 
 func (cMap *CMap) compareAndSwap(node *unsafe.Pointer, currNode *Node, nodeCopy *Node) bool {
-	if atomic.CompareAndSwapPointer(node, unsafe.Pointer(currNode), unsafe.Pointer(nodeCopy)) {
-		return true
-	} else {
-		return false
-	}
+	return atomic.CompareAndSwapPointer(node, unsafe.Pointer(currNode), unsafe.Pointer(nodeCopy))
 }

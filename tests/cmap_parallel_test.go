@@ -42,37 +42,22 @@ func init() {
 }
 
 func TestParallelReadWrites(t *testing.T) {
+	workerCount := 20
 	t.Run("test init key val pairs in map", func(t *testing.T) {
 		t.Parallel()
-
-		var retrieveWG sync.WaitGroup
-		for _, val := range initKeyValPairs {
-			retrieveWG.Add(1)
-			go func(val KeyVal) {
-				defer retrieveWG.Done()
-				value := parallelTestMap.Get(val.Key)
-				if ! bytes.Equal(value, val.Value) {
-					t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
-				}
-			}(val)
-		}
-
-		retrieveWG.Wait()
+		runWithWorkers(initKeyValPairs, workerCount, func(val KeyVal) {
+			value := parallelTestMap.Get(val.Key)
+			if ! bytes.Equal(value, val.Value) {
+				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
+			}
+		})
 	})
 
 	t.Run("test write new key vals in map", func(t *testing.T) {
 		t.Parallel()
-
-		var insertWG sync.WaitGroup
-		for _, val := range pKeyValPairs {
-			insertWG.Add(1)
-			go func(val KeyVal) {
-				defer insertWG.Done()
-				parallelTestMap.Put(val.Key, val.Value)
-			}(val)
-		}
-
-		insertWG.Wait()
+		runWithWorkers(pKeyValPairs, workerCount, func(val KeyVal) {
+			parallelTestMap.Put(val.Key, val.Value)
+		})
 	})
 
 	t.Log("Done")

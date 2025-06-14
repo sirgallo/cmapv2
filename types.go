@@ -1,7 +1,6 @@
 package cmap
 
 import (
-	"sync"
 	"unsafe"
 )
 
@@ -17,11 +16,5 @@ type CMap struct {
 	Root unsafe.Pointer
 	BitChunkSize int
 	HashChunks int
-	// Pool *Pool
 }
 
-type Pool struct {
-	size int64
-	pool *sync.Pool
-	tablePoolMap *sync.Map
-}

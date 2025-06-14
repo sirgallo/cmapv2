@@ -14,7 +14,7 @@ var lKeyValChan chan KeyVal
 var fillArrWG sync.WaitGroup
 
 func init() {
-	sInputSize := 100000
+	sInputSize := 1000000
 	sKeyValPairs = make([]KeyVal, sInputSize)
 	for idx := range sKeyValPairs {
 		randomBytes, _ := GenerateRandomBytes(32)
@@ -46,48 +46,28 @@ func init() {
 
 func TestCMapSmallConcurrentOps(t *testing.T) {
 	cMap := cmap.NewCMap()
-	
-	t.Run("test insert", func(t *testing.T) {
-		var insertWG sync.WaitGroup
-		for _, val := range sKeyValPairs {
-			insertWG.Add(1)
-			go func (val KeyVal) {
-				defer insertWG.Done()
-				cMap.Put(val.Key, val.Value)
-			}(val)
-		}
+	workerCount := 3
 
-		insertWG.Wait()
+	t.Run("test insert", func(t *testing.T) {
+		runWithWorkers(sKeyValPairs, workerCount, func(val KeyVal) {
+			cMap.Put(val.Key, val.Value)
+		})
 	})
 
 	t.Run("test retrieve", func(t *testing.T) {
-		var retrieveWG sync.WaitGroup
-		for _, val := range sKeyValPairs {
-			retrieveWG.Add(1)
-			go func (val KeyVal) {
-				defer retrieveWG.Done()
-				value := cMap.Get(val.Key)
-				// t.Logf("actual: %s, expected: %s", value, val.Value)
-				if ! bytes.Equal(value, val.Value) {
-					t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
-				}
-			}(val)
-		}
-	
-		retrieveWG.Wait()
+		runWithWorkers(sKeyValPairs, workerCount, func(val KeyVal) {
+			value := cMap.Get(val.Key)
+			// t.Logf("actual: %s, expected: %s", value, val.Value)
+			if ! bytes.Equal(value, val.Value) {
+				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
+			}
+		})
 	})
 
 	t.Run("test delete", func(t *testing.T) {
-		var delWG sync.WaitGroup
-		for _, val := range sKeyValPairs {
-			delWG.Add(1)
-			go func (val KeyVal) {
-				defer delWG.Done()
-				cMap.Delete(val.Key)
-			}(val)
-		}
-
-		delWG.Wait()
+		runWithWorkers(sKeyValPairs, workerCount, func(val KeyVal) {
+			cMap.Delete(val.Key)
+		})
 	})
 
 	t.Log("done")
@@ -95,54 +75,28 @@ func TestCMapSmallConcurrentOps(t *testing.T) {
 
 func TestCMapLargeConcurrentOps(t *testing.T) {
 	cMap := cmap.NewCMap()
+	workerCount := 20
 	
 	t.Run("test insert", func(t *testing.T) {
-		var insertWG sync.WaitGroup
-
-		for _, val := range lKeyValPairs {
-			insertWG.Add(1)
-			go func (val KeyVal) {
-				defer insertWG.Done()
-				
-				cMap.Put(val.Key, val.Value)
-			}(val)
-		}
-
-		insertWG.Wait()
+		runWithWorkers(lKeyValPairs, workerCount, func(val KeyVal) {
+			cMap.Put(val.Key, val.Value)
+		})
 	})
 
 	t.Run("test retrieve", func(t *testing.T) {
-		var retrieveWG sync.WaitGroup
-
-		for _, val := range lKeyValPairs {
-			retrieveWG.Add(1)
-			go func (val KeyVal) {
-				defer retrieveWG.Done()
-	
-				value := cMap.Get(val.Key)
-				// t.Logf("actual: %s, expected: %s", value, val.Value)
-				if ! bytes.Equal(value, val.Value) {
-					t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
-				}
-			}(val)
-		}
-	
-		retrieveWG.Wait()
+		runWithWorkers(lKeyValPairs, workerCount, func(val KeyVal) {
+			value := cMap.Get(val.Key)
+			// t.Logf("actual: %s, expected: %s", value, val.Value)
+			if ! bytes.Equal(value, val.Value) {
+				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
+			}
+		})
 	})
 
 	t.Run("test delete", func(t *testing.T) {
-		var delWG sync.WaitGroup
-
-		for _, val := range lKeyValPairs {
-			delWG.Add(1)
-			go func (val KeyVal) {
-				defer delWG.Done()
-	
-				cMap.Delete(val.Key)
-			}(val)
-		}
-
-		delWG.Wait()
+		runWithWorkers(lKeyValPairs, workerCount, func(val KeyVal) {
+			cMap.Delete(val.Key)
+		})
 	})
 
 	t.Log("done")
