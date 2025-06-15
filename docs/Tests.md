@@ -18,7 +18,6 @@ results (with sharded map):
 --- PASS: TestCMapSmallConcurrentOps/test_retrieve (0.51s)
 --- PASS: TestCMapSmallConcurrentOps/test_delete (1.20s)
 
-
 10,000,000 kv pairs with 64 byte keys and 64 byte values
 
 --- PASS: TestCMapLargeConcurrentOps/test_insert (16.97s)
@@ -37,7 +36,6 @@ results (with sharded map):
 --- PASS: TestCMapSmallConcurrentOps/test_insert (0.76s)
 --- PASS: TestCMapSmallConcurrentOps/test_retrieve (0.24s)
 --- PASS: TestCMapSmallConcurrentOps/test_delete (0.76s)
-
 
 10,000,000 kv pairs with 64 byte keys and 64 byte values
 
@@ -58,7 +56,6 @@ results (with sharded map):
 --- PASS: TestCMapSmallConcurrentOps/test_retrieve (0.45s)
 --- PASS: TestCMapSmallConcurrentOps/test_delete (1.04s)
 
-
 10,000,000 kv pairs with 64 byte keys and 64 byte values
 
 --- PASS: TestCMapLargeConcurrentOps/test_insert (15.20s)
@@ -77,7 +74,6 @@ results (with sharded map):
 --- PASS: TestCMapSmallConcurrentOps/test_insert (0.65s)
 --- PASS: TestCMapSmallConcurrentOps/test_retrieve (0.23s)
 --- PASS: TestCMapSmallConcurrentOps/test_delete (0.50s)
-
 
 10,000,000 kv pairs with 64 byte keys and 64 byte values
 
