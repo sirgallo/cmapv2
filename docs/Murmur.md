@@ -1,6 +1,5 @@
 # Murmur32
 
-
 ## Overview
 
 `Murmur32` is a non-cryptographic hash function that generates `32 bit` values for the given input data.
@@ -8,16 +7,13 @@
 
 ## Steps
 
-
 ### Initialization
 
 `Murmur32` takes two inputs: the input data and a seed value. The seed value will add randomness to the hash function, where the hash value is initiliazed with the seed value.
 
-
 ### Processing 4-byte Chunks
 
 The input data, a string, is processed in `4-byte` (`32 bit`) chunks, where each chunk is processed individually. The data is interpreted as a sequence of [Little-Endian](https://en.wikipedia.org/wiki/Endianness) `32 bit` unsigned integers, so for each Least Significant Byte comes first in memory. 
-
 
 ### Rotation and Mixing
 
@@ -34,17 +30,16 @@ For each 4-byte chunk, a series of rotations, mixings, and XOR operations are ap
 
 here is the rotateRight function in go:
 ```go
-func rotateRight(hash *uint32, chunk uint32) {
-	chunk *= constant1
+func rotateRight32(hash *uint32, chunk uint32) {
+	chunk *= c32_1
 	chunk = (chunk << 15) | (chunk >> 17) // Rotate right by 15
-	chunk *= constant2
+	chunk *= c32_2
 
 	*hash ^= chunk
 	*hash = (*hash << 13) | (*hash >> 19) // Rotate right by 13
-	*hash = *hash * 5 + constant3
+	*hash = *hash*5 + c32_3
 }
 ```
-
 
 ### Handling Remaining Bytes
 
@@ -62,32 +57,30 @@ The following steps may be applied depending on the number of remaining bytes (1
 
 here is the handleRemaining function in go:
 ```go
-func handleRemainingBytes(hash *uint32, dataAsBytes []byte) {
-	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes) % 4:]
-	
+func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
+	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes)%4:]
 	if len(remaining) > 0 {
 		var chunk uint32
-		
+
 		switch len(remaining) {
-			case 3:
-				chunk |= uint32(remaining[2]) << 16
-				fallthrough
-			case 2:
-				chunk |= uint32(remaining[1]) << 8
-				fallthrough
-			case 1:
-				chunk |= uint32(remaining[0])
-				chunk *= constant1
-				chunk = (chunk << 15) | (chunk >> 17) // Rotate right by 15
-				chunk *= constant2
-				*hash ^= chunk
-			}
+		case 3:
+			chunk |= uint32(remaining[2]) << 16
+			fallthrough
+		case 2:
+			chunk |= uint32(remaining[1]) << 8
+			fallthrough
+		case 1:
+			chunk |= uint32(remaining[0])
+			chunk *= c32_1
+			chunk = (chunk << 15) | (chunk >> 17) // Rotate right by 15
+			chunk *= c32_2
+			*hash ^= chunk
+		}
 	}
 }
 ```
 
 the `fallthrough` keyword in the switch allows the case block, if in higher order than the other blocks, to perform the operations on the following case blocks.
-
 
 ### Finalization
 
@@ -113,7 +106,6 @@ hash ^= hash >> 13
 hash *= constant5
 hash ^= hash >> 16
 ```
-
 
 ## What are the Constants?
 

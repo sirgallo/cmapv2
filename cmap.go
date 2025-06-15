@@ -4,8 +4,7 @@ import (
 	"unsafe"
 )
 
-func NewShardedMap() *ShardedMap {
-	shards := 8
+func NewShardedMap(shards int) *ShardedMap {
 	s := &ShardedMap{shards: make([]*CMap, shards)}
 	for i := range s.shards {
 		s.shards[i] = NewCMap()

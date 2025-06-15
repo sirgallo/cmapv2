@@ -2,60 +2,38 @@ package cmapv2tests
 
 import (
 	"bytes"
-	"sync"
 	"testing"
 
 	"github.com/sirgallo/cmapv2"
 )
 
 var parallelTestMap *cmap.ShardedMap
-var pInputSize int
-var initKeyValPairs []KeyVal
-var pKeyValPairs []KeyVal
 
 func init() {
-	parallelTestMap = cmap.NewShardedMap()
-	pInputSize = 1000000
-	initKeyValPairs = make([]KeyVal, pInputSize)
-	pKeyValPairs = make([]KeyVal, pInputSize)
-
-	for idx := range initKeyValPairs {
-		iRandomBytes, _ := generateRandomBytes(128)
-		initKeyValPairs[idx] = KeyVal{Key: iRandomBytes, Value: iRandomBytes}
-	}
-
-	for idx := range pKeyValPairs {
-		pRandomBytes, _ := generateRandomBytes(128)
-		pKeyValPairs[idx] = KeyVal{Key: pRandomBytes, Value: pRandomBytes}
-	}
-
-	var initMapWG sync.WaitGroup
-	for _, val := range initKeyValPairs {
-		initMapWG.Add(1)
-		go func(val KeyVal) {
-			defer initMapWG.Done()
-			parallelTestMap.Put(val.Key, val.Value)
-		}(val)
-	}
-
-	initMapWG.Wait()
+	parallelTestMap = cmap.NewShardedMap(totalShards)
+	runWithWorkers(smallInputSize, workerCount, func(idx int) {
+		key, val := generateKeyVal64(idx)
+		parallelTestMap.Put(key, val)
+	})
 }
 
 func TestParallelReadWrites(t *testing.T) {
 	t.Run("test init key val pairs in map", func(t *testing.T) {
 		t.Parallel()
-		runWithWorkers(initKeyValPairs, workerCount, func(val KeyVal) {
-			value := parallelTestMap.Get(val.Key)
-			if !bytes.Equal(value, val.Value) {
-				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val.Value)
+		runWithWorkers(smallInputSize, workerCount, func(idx int) {
+			key, val := generateKeyVal64(idx)
+			value := parallelTestMap.Get(key)
+			if !bytes.Equal(value, val) {
+				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val)
 			}
 		})
 	})
 
 	t.Run("test write new key vals in map", func(t *testing.T) {
 		t.Parallel()
-		runWithWorkers(pKeyValPairs, workerCount, func(val KeyVal) {
-			parallelTestMap.Put(val.Key, val.Value)
+		runWithWorkers(smallInputSize, workerCount, func(idx int) {
+			key, val := generateKeyVal64(idx + smallInputSize)
+			parallelTestMap.Put(key, val)
 		})
 	})
 

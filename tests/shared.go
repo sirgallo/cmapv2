@@ -1,41 +1,42 @@
 package cmapv2tests
 
 import (
-	"crypto/rand"
+	"encoding/binary"
 	"sync"
 )
 
-var workerCount int = 1
+var largeInputSize int = 10000000
+var smallInputSize int = 1000000
+var totalShards int = 32
+var workerCount int = 3
 
-type KeyVal struct {
-	Key   []byte
-	Value []byte
-}
-
-func generateRandomBytes(length int) ([]byte, error) {
-	randomBytes := make([]byte, length)
-	_, err := rand.Read(randomBytes)
-	if err != nil {
-		return nil, err
+func generateKeyVal64(index int) ([]byte, []byte) {
+	key := make([]byte, 64)
+	val := make([]byte, 64)
+	for idx := range 8 {
+		offset := idx * 8
+		binary.LittleEndian.PutUint64(key[offset:], uint64(index*(idx+1)))
+		binary.LittleEndian.PutUint64(val[offset:], uint64((index+1)*(idx+2)))
 	}
-	return randomBytes, nil
+
+	return key, val
 }
 
-func runWithWorkers(pairs []KeyVal, workerCount int, fn func(KeyVal)) {
-	jobs := make(chan KeyVal, len(pairs))
+func runWithWorkers(total int, workerCount int, fn func(int)) {
+	jobs := make(chan int, total)
 	var wg sync.WaitGroup
-	for i := 0; i < workerCount; i++ {
+	for range workerCount {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			for val := range jobs {
-				fn(val)
+			for idx := range jobs {
+				fn(idx)
 			}
 		}()
 	}
 
-	for _, pair := range pairs {
-		jobs <- pair
+	for idx := range total {
+		jobs <- idx
 	}
 
 	close(jobs)
