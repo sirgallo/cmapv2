@@ -4,32 +4,32 @@ import (
 	"sync"
 )
 
-func newPool() *Pool {
+func newPool() Pool {
 	np := sync.Pool{
 		New: func() any {
-			return &Node{}
+			return &node{}
 		},
 	}
 
-	return &Pool{
+	return &pool{
 		node: &np,
 	}
 }
 
-func (p *Pool) getNode() *Node {
-	return p.node.Get().(*Node)
+func (p *pool) GetNode() *node {
+	return p.node.Get().(*node)
 }
 
-func (p *Pool) putNode(node *Node) {
+func (p *pool) PutNode(node *node) {
 	p.node.Put(p.resetNode(node))
 }
 
-func (p *Pool) resetNode(node *Node) *Node {
-	node.Key = nil
-	node.Value = nil
-	node.IsLeaf = false
-	node.Bitmap = 0
-	node.Children = nil
+func (p *pool) resetNode(node *node) *node {
+	node.key = nil
+	node.value = nil
+	node.isLeaf = false
+	node.bitmap = 0
+	node.children = nil
 
 	return node
 }

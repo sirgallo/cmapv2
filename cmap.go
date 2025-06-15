@@ -4,30 +4,25 @@ import (
 	"unsafe"
 )
 
-func NewShardedMap(shards int) *ShardedMap {
-	s := &ShardedMap{shards: make([]*CMap, shards)}
+func NewShardedMap(shards int) CMap {
+	s := &shardedMap{shards: make([]CMap, shards)}
 	for i := range s.shards {
 		s.shards[i] = NewCMap()
 	}
 	return s
 }
 
-func NewCMap() *CMap {
-	nodePool := newPool()
-	rootNode := nodePool.getNode()
-	rootNode.IsLeaf = false
-	rootNode.Bitmap = 0
-	rootNode.Children = []*Node{}
+func NewCMap() CMap {
+	nPool := newPool()
+	rootNode := nPool.GetNode()
+	rootNode.isLeaf = false
+	rootNode.bitmap = 0
+	rootNode.children = []*node{}
 
-	return &CMap{
-		BitChunkSize: 5,
-		HashChunks:   6,
-		Root:         unsafe.Pointer(rootNode),
-		pool:         nodePool,
+	return &cMap{
+		bitChunkSize: 5,
+		hashChunks:   6,
+		root:         unsafe.Pointer(rootNode),
+		pool:         nPool,
 	}
-}
-
-func (s *ShardedMap) getShard(key []byte) *CMap {
-	h := Murmur32(key, 1) % uint32(len(s.shards))
-	return s.shards[h]
 }

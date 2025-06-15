@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"math"
 	"math/bits"
-	"sync/atomic"
-	"unsafe"
 )
 
-func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
-	if level%cMap.HashChunks == 0 || hash == 0 {
-		currChunk := level / cMap.HashChunks
+func (cMap *cMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
+	if level%cMap.hashChunks == 0 || hash == 0 {
+		currChunk := level / cMap.hashChunks
 		seed := uint32(currChunk + 1)
 		return Murmur32(key, seed)
 	}
@@ -18,12 +16,12 @@ func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level in
 	return hash
 }
 
-func (cMap *CMap) getSparseIndex(hash uint32, level int) int {
-	return GetIndexForLevel(hash, cMap.BitChunkSize, level, cMap.HashChunks)
+func (cMap *cMap) getSparseIndex(hash uint32, level int) int {
+	return GetIndexForLevel(hash, cMap.bitChunkSize, level, cMap.hashChunks)
 }
 
-func (cMap *CMap) getPosition(bitMap uint32, hash uint32, level int) int {
-	sparseIdx := GetIndexForLevel(hash, cMap.BitChunkSize, level, cMap.HashChunks)
+func (cMap *cMap) getPosition(bitMap uint32, hash uint32, level int) int {
+	sparseIdx := GetIndexForLevel(hash, cMap.bitChunkSize, level, cMap.hashChunks)
 	mask := uint32((1 << sparseIdx) - 1)
 	isolatedBits := bitMap & mask
 	return calculateHammingWeight(isolatedBits)
@@ -53,21 +51,19 @@ func IsBitSet(bitmap uint32, position int) bool {
 	return (bitmap & (1 << position)) != 0
 }
 
-func (cMap *CMap) PrintChildren() {
-	cMap.printChildrenRecursive(&cMap.Root, 0)
-}
-
-func (cMap *CMap) printChildrenRecursive(node *unsafe.Pointer, level int) {
-	currNode := (*Node)(atomic.LoadPointer(node))
-	if currNode == nil {
+func (n *node) PrintChildren() {
+	if n == nil {
 		return
 	}
 
-	for idx, child := range currNode.Children {
+	n.printChildrenRecursive(0)
+}
+
+func (n *node) printChildrenRecursive(level int) {
+	for idx, child := range n.Children() {
 		if child != nil {
-			fmt.Printf("Level: %d, Index: %d, Key: %s, Value: %v\n", level, idx, child.Key, child.Value)
-			childPtr := unsafe.Pointer(child)
-			cMap.printChildrenRecursive(&childPtr, level+1)
+			fmt.Printf("Level: %d, Index: %d, Key: %s, Value: %v\n", level, idx, child.Key(), child.Value())
+			child.printChildrenRecursive(level+1)
 		}
 	}
 }

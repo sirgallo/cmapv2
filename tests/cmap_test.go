@@ -1,7 +1,6 @@
 package cmapv2tests
 
 import (
-	"sync/atomic"
 	"testing"
 
 	"github.com/sirgallo/cmapv2"
@@ -30,10 +29,10 @@ func TestCMap(t *testing.T) {
 		cMap.Put([]byte("fasdfasdf"), []byte("info!"))
 		cMap.Put([]byte("woah"), []byte("done"))
 
-		rootBitMap := (*cmap.Node)(atomic.LoadPointer(&cMap.Root)).Bitmap
+		rootBitMap := cMap.Root().Bitmap()
 
 		t.Logf("cMap after inserts")
-		cMap.PrintChildren()
+		cMap.Root().PrintChildren()
 
 		expectedBitMap := uint32(542198999)
 		t.Logf("actual root bitmap: %d, expected root bitmap: %d\n", rootBitMap, expectedBitMap)
@@ -81,12 +80,12 @@ func TestCMap(t *testing.T) {
 		cMap.Delete([]byte("new"))
 		cMap.Delete([]byte("6"))
 
-		rootBitMapAfterDelete := (*cmap.Node)(atomic.LoadPointer(&cMap.Root)).Bitmap
+		rootBitMapAfterDelete := cMap.Root().Bitmap()
 		t.Logf("bitmap of root after deletes: %032b\n", rootBitMapAfterDelete)
 		t.Logf("bitmap of root after deletes: %d\n", rootBitMapAfterDelete)
 
 		t.Log("hamt after deletes")
-		cMap.PrintChildren()
+		cMap.Root().PrintChildren()
 
 		expectedRootBitmapAfterDelete := uint32(536956102)
 		t.Log("actual bitmap:", rootBitMapAfterDelete, "expected bitmap:", expectedRootBitmapAfterDelete)

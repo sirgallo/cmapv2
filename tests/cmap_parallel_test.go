@@ -7,7 +7,7 @@ import (
 	"github.com/sirgallo/cmapv2"
 )
 
-var parallelTestMap *cmap.ShardedMap
+var parallelTestMap cmap.CMap
 
 func init() {
 	parallelTestMap = cmap.NewShardedMap(totalShards)
