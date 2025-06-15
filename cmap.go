@@ -14,20 +14,17 @@ func NewShardedMap(shards int) *ShardedMap {
 
 func NewCMap() *CMap {
 	nodePool := newPool()
-
 	rootNode := nodePool.getNode()
 	rootNode.IsLeaf = false
 	rootNode.Bitmap = 0
 	rootNode.Children = []*Node{}
 
-	cmap := &CMap{
+	return &CMap{
 		BitChunkSize: 5,
 		HashChunks:   6,
 		Root:         unsafe.Pointer(rootNode),
 		pool:         nodePool,
 	}
-
-	return cmap
 }
 
 func (s *ShardedMap) getShard(key []byte) *CMap {

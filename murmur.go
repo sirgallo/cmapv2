@@ -14,18 +14,13 @@ const (
 
 func Murmur32(data []byte, seed uint32) uint32 {
 	hash := seed
-	length := uint32(len(data))
-	total4ByteChunks := len(data) / 4
-	for idx := range make([]int, total4ByteChunks) {
-		startIdxOfChunk := idx * 4
-		endIdxOfChunk := (idx + 1) * 4
-		chunk := binary.LittleEndian.Uint32(data[startIdxOfChunk:endIdxOfChunk])
+	for idx := range len(data) / 4 {
+		chunk := binary.LittleEndian.Uint32(data[idx * 4:(idx + 1) * 4])
 		rotateRight32(&hash, chunk)
 	}
 
 	handleRemainingBytes32(&hash, data)
-
-	hash ^= length
+	hash ^= uint32(len(data)) // total length
 	hash ^= hash >> 16
 	hash *= c32_4
 	hash ^= hash >> 13
@@ -48,7 +43,6 @@ func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
 	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes)%4:]
 	if len(remaining) > 0 {
 		var chunk uint32
-
 		switch len(remaining) {
 		case 3:
 			chunk |= uint32(remaining[2]) << 16
