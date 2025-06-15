@@ -7,7 +7,7 @@ import (
 
 var largeInputSize int = 10000000
 var smallInputSize int = 1000000
-var totalShards int = 32
+var totalShards int = 2048
 var workerCount int = 3
 
 func generateKeyVal64(index int) ([]byte, []byte) {

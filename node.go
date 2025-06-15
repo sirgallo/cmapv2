@@ -1,23 +1,23 @@
 package cmap
 
 func (cMap *CMap) NewLNode(key []byte, value []byte) *Node {
-	return &Node{
-		IsLeaf: true,
-		Key:    key,
-		Value:  value,
-	}
+	node := cMap.pool.getNode()
+	node.IsLeaf = true
+	node.Key = key
+	node.Value = value
+	return node
 }
 
 func (cMap *CMap) NewINode() *Node {
-	return &Node{
-		IsLeaf:   false,
-		Bitmap:   0,
-		Children: []*Node{},
-	}
+	node := cMap.pool.getNode()
+	node.IsLeaf = false
+	node.Bitmap = 0
+	node.Children = []*Node{}
+	return node
 }
 
 func (cMap *CMap) CopyNode(node *Node) *Node {
-	nodeCopy := &Node{}
+	nodeCopy := cMap.pool.getNode()
 	nodeCopy.Key = node.Key
 	nodeCopy.Value = node.Value
 	nodeCopy.IsLeaf = node.IsLeaf
@@ -28,7 +28,7 @@ func (cMap *CMap) CopyNode(node *Node) *Node {
 	return nodeCopy
 }
 
-func ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
+func (cMap *CMap) ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
 	tableSize := calculateHammingWeight(bitMap)
 	newTable := make([]*Node, tableSize)
 
@@ -38,7 +38,7 @@ func ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
 	return newTable
 }
 
-func ShrinkTable(orig []*Node, bitMap uint32, pos int) []*Node {
+func (cMap *CMap) ShrinkTable(orig []*Node, bitMap uint32, pos int) []*Node {
 	tableSize := calculateHammingWeight(bitMap)
 	newTable := make([]*Node, tableSize)
 
