@@ -4,7 +4,6 @@
 
 `Murmur32` is a non-cryptographic hash function that generates `32 bit` values for the given input data.
 
-
 ## Steps
 
 ### Initialization

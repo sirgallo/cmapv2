@@ -125,3 +125,26 @@ PASS: TestCMapLargeConcurrentOps/test_delete (9.42s)
 PASS: TestParallelReadWrites/test_init_key_val_pairs_in_map (0.76s)
 PASS: TestParallelReadWrites/test_write_new_key_vals_in_map (1.24s)
 ```
+
+comparing to `sync.Map`:
+
+```
+3 workers:
+
+1,000,000 kv pairs with 64 byte keys and 64 byte values
+
+PASS: TestSyncMapSmallConcurrentOps/test_insert (0.79s)
+PASS: TestSyncMapSmallConcurrentOps/test_retrieve (0.30s)
+PASS: TestSyncMapSmallConcurrentOps/test_delete (0.16s)
+
+10,000,000 kv pairs with 64 byte keys and 64 byte values
+
+PASS: TestSyncMapLargeConcurrentOps/test_insert (8.29s)
+PASS: TestSyncMapLargeConcurrentOps/test_retrieve (3.35s)
+PASS: TestSyncMapLargeConcurrentOps/test_delete (2.18s)
+
+1,000,000 kv pairs with 64 byte keys and 64 byte values
+
+PASS: TestParallelSyncMapReadWrites/test_write_new_key_vals_in_map (1.04s)
+PASS: TestParallelSyncMapReadWrites/test_init_key_val_pairs_in_map (1.09s)
+```

@@ -49,6 +49,17 @@ func main() {
 go test -v ./tests
 ```
 
+or bench:
+```bash
+go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./tests
+```
+
+and check results:
+```bash
+go tool pprof cpu.prof
+go tool pprof mem.prof
+```
+
 ## godoc
 
 For in depth definitions of types and functions, `godoc` can generate documentation from the formatted function comments. If `godoc` is not installed, it can be installed with the following:
