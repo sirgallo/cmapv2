@@ -1,20 +1,20 @@
-# Murmur32
+# murmur32
 
-## Overview
+## overview
 
 `Murmur32` is a non-cryptographic hash function that generates `32 bit` values for the given input data.
 
-## Steps
+## steps
 
-### Initialization
+### initialization
 
 `Murmur32` takes two inputs: the input data and a seed value. The seed value will add randomness to the hash function, where the hash value is initiliazed with the seed value.
 
-### Processing 4-byte Chunks
+### processing 4-byte chunks
 
 The input data, a string, is processed in `4-byte` (`32 bit`) chunks, where each chunk is processed individually. The data is interpreted as a sequence of [Little-Endian](https://en.wikipedia.org/wiki/Endianness) `32 bit` unsigned integers, so for each Least Significant Byte comes first in memory. 
 
-### Rotation and Mixing
+### rotation and mixing
 
 For each 4-byte chunk, a series of rotations, mixings, and XOR operations are applied.
 
@@ -40,7 +40,7 @@ func rotateRight32(hash *uint32, chunk uint32) {
 }
 ```
 
-### Handling Remaining Bytes
+### handling remaining bytes
 
 There may be remaining bytes after processing the chunks.
 
@@ -81,7 +81,7 @@ func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
 
 the `fallthrough` keyword in the switch allows the case block, if in higher order than the other blocks, to perform the operations on the following case blocks.
 
-### Finalization
+### finalization
 
 After processing the chunks, some final mixing is applied to the hash.
 
@@ -106,7 +106,7 @@ hash *= constant5
 hash ^= hash >> 16
 ```
 
-## What are the Constants?
+## what are the constants?
 
 ```go
 // a prime number that serves as a multiplier during mixing. Distributes bits and improves randomness
@@ -124,11 +124,3 @@ const constant4 = 0x1b873593
 // multiplier in the finalization step. Again, improves hash value distribution
 const constant5 = 0x5c4bcea9
 ```
-
-# Murmur64
-
-`Murmur64` has also been implemented to extend the 32 bit hash to a 64 bit hash. The algorithm is the same, with only the constants changing and the byte chunk size changing (from `4 Bytes` to `8 Bytes`)
-
-## Sources
-
-[Murmur](../pkg/map/Murmur.go)

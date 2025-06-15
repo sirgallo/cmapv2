@@ -56,25 +56,8 @@ go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./tests
 
 and check results:
 ```bash
-go tool pprof cpu.prof
-go tool pprof mem.prof
-```
-
-## godoc
-
-For in depth definitions of types and functions, `godoc` can generate documentation from the formatted function comments. If `godoc` is not installed, it can be installed with the following:
-```bash
-go install golang.org/x/tools/cmd/godoc
-```
-
-To run the `godoc` server and view definitions for the package:
-```bash
-godoc -http=:6060
-```
-
-Then, in your browser, navigate to:
-```
-http://localhost:6060/pkg/github.com/sirgallo/cmap/
+go tool pprof -http=:8080 tests.test cpu.prof
+go tool pprof -http=:8080 tests.test mem.prof
 ```
 
 ## sources
@@ -82,3 +65,5 @@ http://localhost:6060/pkg/github.com/sirgallo/cmap/
 [CMap](./docs/CMap.md)
 
 [Murmur](./docs/Murmur.md)
+
+[Tests](./docs/Tests.md)

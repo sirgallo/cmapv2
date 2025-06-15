@@ -1,4 +1,4 @@
-# Tests
+# tests
 
 tested on:
 ```
