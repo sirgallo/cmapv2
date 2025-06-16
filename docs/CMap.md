@@ -2,7 +2,7 @@
 
 ## data structure 
 
-### ctri
+### ctrie
 
 A `Concurrent Trie` is a non-blocking implementation of a `Hash Array Mapped Trie (HAMT)` that utilizes atomic `Compare-and-Swap (CAS)` operations.
 
