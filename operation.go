@@ -36,9 +36,9 @@ func (cMap *cMap) putRecursive(nodePtr *unsafe.Pointer, key []byte, value []byte
 		return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 	} else {
 		pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
-		if nodeCopy.Child(pos).IsLeaf() {
+		if nodeCopy.children[pos].IsLeaf() {
 			if bytes.Equal(key, nodeCopy.Child(pos).Key()) {
-				nodeCopy.Child(pos).setValue(value)
+				nodeCopy.children[pos].setValue(value)
 				return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 			} else {
 				newINode := cMap.NewINode()
@@ -49,7 +49,7 @@ func (cMap *cMap) putRecursive(nodePtr *unsafe.Pointer, key []byte, value []byte
 				return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 			}
 		} else {
-			childPtr := unsafe.Pointer(nodeCopy.Child(pos))
+			childPtr := unsafe.Pointer(nodeCopy.children[pos])
 			cMap.putRecursive(&childPtr, key, value, hash, level+1)
 			nodeCopy.setChild((*node)(atomic.LoadPointer(&childPtr)), pos)
 			return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
@@ -70,7 +70,7 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 		if node.Child(pos).IsLeaf() && bytes.Equal(key, node.Child(pos).Key()) {
 			return node.Child(pos).Value()
 		} else {
-			return cMap.getRecursive(node.Child(pos), key, hash, level+1)
+			return cMap.getRecursive(node.children[pos], key, hash, level+1)
 		}
 	}
 }
@@ -105,7 +105,7 @@ func (cMap *cMap) deleteRecursive(nodePtr *unsafe.Pointer, key []byte, hash uint
 
 			return false
 		} else {
-			childPtr := unsafe.Pointer(nodeCopy.Child(pos))
+			childPtr := unsafe.Pointer(nodeCopy.children[pos])
 			cMap.deleteRecursive(&childPtr, key, hash, level+1)
 			popCount := calculateHammingWeight(nodeCopy.Bitmap())
 			if popCount == 0 {

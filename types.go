@@ -28,8 +28,8 @@ type Node interface {
 	Value() []byte
 	IsLeaf() bool
 	Bitmap() uint32
-	Children() []*node
-	Child(pos int) *node
+	Children() []Node
+	Child(pos int) Node
 	PrintChildren()
 }
 

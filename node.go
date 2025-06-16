@@ -83,15 +83,20 @@ func (n *node) setBitmap(bitmap uint32) {
 	n.bitmap = bitmap
 }
 
-func (n *node) Children() []*node {
-	return n.children
+func (n *node) Children() []Node {
+	var children []Node
+	for _, child := range n.children {
+		children = append(children, child)
+	}
+
+	return children
 }
 
 func (n *node) setChildren(children []*node) {
 	n.children = children
 }
 
-func (n *node) Child(pos int) *node {
+func (n *node) Child(pos int) Node {
 	return n.children[pos]
 }
 
