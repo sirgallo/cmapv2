@@ -27,6 +27,6 @@ func (sMap *shardedMap) Delete(key []byte) bool {
 }
 
 func (s *shardedMap) getShard(key []byte) CMap {
-	h := Murmur32(key, 1) % uint32(len(s.shards))
+	h := Murmur64(key, 1) % uint64(len(s.shards))
 	return s.shards[h]
 }
