@@ -60,7 +60,6 @@ func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
 	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes)%4:]
 	if len(remaining) > 0 {
 		var chunk uint32
-
 		switch len(remaining) {
 		case 3:
 			chunk |= uint32(remaining[2]) << 16
@@ -98,11 +97,11 @@ The following steps are applied:
 
 in go:
 ```go
-hash ^= length
+hash ^= uint32(len(data)) // total length
 hash ^= hash >> 16
-hash *= constant4
+hash *= c32_4
 hash ^= hash >> 13
-hash *= constant5
+hash *= c32_5
 hash ^= hash >> 16
 ```
 

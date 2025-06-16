@@ -9,11 +9,11 @@ A `Concurrent Trie` is a non-blocking implementation of a `Hash Array Mapped Tri
 Both the `32 bit` and `64 bit` variants have been implemented, with instantiation of the map being as such:
 
 ```go
-// 32 bit
-cMap := cmap.NewCMap[uint32]()
+// single map
+cMap := cmap.NewMap()
 
-// 64 bit
-cMap := cmap.NewCMap[uint64]()
+// shared map
+cMap := cmap.NewMap(16)
 ```
 
 ## design
@@ -140,9 +140,9 @@ func (cMap *CMap) getPosition(bitMap uint32, hash uint32, level int) int {
 When a position in the new table is calculated for an inserted element, the original table needs to be resized, and a new row at that particular location will be added, maintaining the sorted nature from the sparse index. This is done using go array slices, and copying elements from the original to the new table.
 
 ```go
-func ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
+func (cMap *cMap) ExtendTable(orig []*node, bitMap uint32, pos int, newNode *node) []*node {
 	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*Node, tableSize)
+	newTable := make([]*node, tableSize)
 
 	copy(newTable[:pos], orig[:pos])
 	newTable[pos] = newNode
@@ -156,9 +156,9 @@ func ExtendTable(orig []*Node, bitMap uint32, pos int, newNode *Node) []*Node {
 Similarly to extending, shrinking a table will remove a row at a particular index and then copy elements from the original table over to the new table.
 
 ```go
-func ShrinkTable(orig []*Node, bitMap uint32, pos int) []*Node {
+func (cMap *cMap) ShrinkTable(orig []*node, bitMap uint32, pos int) []*node {
 	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*Node, tableSize)
+	newTable := make([]*node, tableSize)
 
 	copy(newTable[:pos], orig[:pos])
 	copy(newTable[pos:], orig[pos+1:])
@@ -177,9 +177,9 @@ Since the 32 bit hash only has 6 chunks of 5 bits, the Ctrie is capped at 6 leve
 The 64 bit hash has also been implemented, with 10 chunks of 6 bits. 
 
 ```go
-func (cMap *CMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
-	if level%cMap.HashChunks == 0 || hash == 0 {
-		currChunk := level / cMap.HashChunks
+func (cMap *cMap) calculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
+	if level%cMap.hashChunks == 0 || hash == 0 {
+		currChunk := level / cMap.hashChunks
 		seed := uint32(currChunk + 1)
 		return Murmur32(key, seed)
 	}
