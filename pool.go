@@ -25,10 +25,10 @@ func (p *pool) PutNode(node *node) {
 }
 
 func (p *pool) resetNode(node *node) *node {
-	node.key = nil
-	node.value = nil
-	node.isLeaf = false
-	node.bitmap = 0
-	node.children = nil
+	node.setKey(nil)
+	node.setValue(nil)
+	node.setIsLeaf(false)
+	node.setBitmap(0)
+	node.setChildren(nil)
 	return node
 }

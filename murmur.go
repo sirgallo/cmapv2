@@ -69,7 +69,7 @@ func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
 func Murmur64(data []byte, seed uint64) uint64 {
 	hash := seed
 	for idx := range len(data) / 8 {
-		chunk := binary.LittleEndian.Uint64(data[idx * 8:(idx + 1) * 8])
+		chunk := binary.LittleEndian.Uint64(data[idx*8 : (idx+1)*8])
 		rotateRight64(&hash, chunk)
 	}
 
@@ -90,7 +90,7 @@ func rotateRight64(hash *uint64, chunk uint64) {
 
 	*hash ^= chunk
 	*hash = (*hash << 27) | (*hash >> 37) // Rotate right by 27
-	*hash = *hash * 5 + c64_3
+	*hash = *hash*5 + c64_3
 }
 
 func handleRemainingBytes64(hash *uint64, dataAsBytes []byte) {
@@ -98,30 +98,30 @@ func handleRemainingBytes64(hash *uint64, dataAsBytes []byte) {
 	if len(remaining) > 0 {
 		var chunk uint64
 		switch len(remaining) {
-			case 7:
-				chunk |= uint64(remaining[6]) << 48
-				fallthrough
-			case 6:
-				chunk |= uint64(remaining[5]) << 40
-				fallthrough
-			case 5:
-				chunk |= uint64(remaining[4]) << 32
-				fallthrough
-			case 4:
-				chunk |= uint64(remaining[3]) << 24
-				fallthrough
-			case 3:
-				chunk |= uint64(remaining[2]) << 16
-				fallthrough
-			case 2:
-				chunk |= uint64(remaining[1]) << 8
-				fallthrough
-			case 1:
-				chunk |= uint64(remaining[0])
-				chunk *= c64_1
-				chunk = (chunk << 31) | (chunk >> 33) // Rotate right by 31
-				chunk *= c64_2
-				*hash ^= chunk
+		case 7:
+			chunk |= uint64(remaining[6]) << 48
+			fallthrough
+		case 6:
+			chunk |= uint64(remaining[5]) << 40
+			fallthrough
+		case 5:
+			chunk |= uint64(remaining[4]) << 32
+			fallthrough
+		case 4:
+			chunk |= uint64(remaining[3]) << 24
+			fallthrough
+		case 3:
+			chunk |= uint64(remaining[2]) << 16
+			fallthrough
+		case 2:
+			chunk |= uint64(remaining[1]) << 8
+			fallthrough
+		case 1:
+			chunk |= uint64(remaining[0])
+			chunk *= c64_1
+			chunk = (chunk << 31) | (chunk >> 33) // Rotate right by 31
+			chunk *= c64_2
+			*hash ^= chunk
 		}
 	}
 }
