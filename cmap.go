@@ -4,15 +4,22 @@ import (
 	"unsafe"
 )
 
-func NewShardedMap(shards int) CMap {
+func NewMap(shards ...int) CMap {
+	if len(shards) == 1 && shards[0] > 1 {
+		return newShardedMap(shards[0])
+	}
+	return newCMap()
+}
+
+func newShardedMap(shards int) CMap {
 	s := &shardedMap{shards: make([]CMap, shards)}
 	for i := range s.shards {
-		s.shards[i] = NewCMap()
+		s.shards[i] = newCMap()
 	}
 	return s
 }
 
-func NewCMap() CMap {
+func newCMap() CMap {
 	nPool := newPool()
 	rootNode := nPool.GetNode()
 	rootNode.isLeaf = false

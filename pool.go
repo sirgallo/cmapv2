@@ -30,6 +30,5 @@ func (p *pool) resetNode(node *node) *node {
 	node.isLeaf = false
 	node.bitmap = 0
 	node.children = nil
-
 	return node
 }

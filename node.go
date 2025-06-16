@@ -1,5 +1,9 @@
 package cmap
 
+import (
+	"fmt"
+)
+
 func (cMap *cMap) NewLNode(key []byte, value []byte) *node {
 	n := cMap.pool.GetNode()
 	n.isLeaf = true
@@ -18,13 +22,13 @@ func (cMap *cMap) NewINode() *node {
 
 func (cMap *cMap) CopyNode(n *node) *node {
 	nodeCopy := cMap.pool.GetNode()
-	nodeCopy.key = n.Key()
-	nodeCopy.value = n.Value()
-	nodeCopy.isLeaf = n.IsLeaf()
-	nodeCopy.bitmap = n.Bitmap()
-	nodeCopy.children = make([]*node, len(n.Children()))
+	nodeCopy.key = n.key
+	nodeCopy.value = n.value
+	nodeCopy.isLeaf = n.isLeaf
+	nodeCopy.bitmap = n.bitmap
+	nodeCopy.children = make([]*node, len(n.children))
 
-	copy(nodeCopy.children, n.Children())
+	copy(nodeCopy.children, n.children)
 	return nodeCopy
 }
 
@@ -65,4 +69,25 @@ func (n *node) Bitmap() uint32 {
 
 func (n *node) Children() []*node {
 	return n.children
+}
+
+func (n *node) Child(pos int) *node {
+	return n.children[pos]
+}
+
+func (n *node) PrintChildren() {
+	if n == nil {
+		return
+	}
+
+	n.printChildrenRecursive(0)
+}
+
+func (n *node) printChildrenRecursive(level int) {
+	for idx, child := range n.children {
+		if child != nil {
+			fmt.Printf("Level: %d, Index: %d, Key: %s, Value: %v\n", level, idx, child.Key(), child.Value())
+			child.printChildrenRecursive(level + 1)
+		}
+	}
 }

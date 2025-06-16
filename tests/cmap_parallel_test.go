@@ -10,7 +10,7 @@ import (
 var parallelTestMap cmap.CMap
 
 func init() {
-	parallelTestMap = cmap.NewShardedMap(totalShards)
+	parallelTestMap = cmap.NewMap(totalShards)
 	runWithWorkers(smallInputSize, workerCount, func(idx int) {
 		key, val := generateKeyVal64(idx)
 		parallelTestMap.Put(key, val)

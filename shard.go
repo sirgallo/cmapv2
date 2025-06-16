@@ -1,12 +1,14 @@
 package cmap
 
-func (s *shardedMap) getShard(key []byte) CMap {
-	h := Murmur32(key, 1) % uint32(len(s.shards))
-	return s.shards[h]
-}
+import (
+	"log"
+)
 
-func (sMap *shardedMap) Root() Node {
-	return nil
+func (sMap *shardedMap) Root(shards ...int) Node {
+	if len(shards) != 1 {
+		log.Fatalf("please provide the shard number")
+	}
+	return sMap.shards[shards[0]].Root()
 }
 
 func (sMap *shardedMap) Put(key []byte, value []byte) bool {
@@ -24,6 +26,7 @@ func (sMap *shardedMap) Delete(key []byte) bool {
 	return shard.Delete(key)
 }
 
-func (sMap *shardedMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
-	return 0
+func (s *shardedMap) getShard(key []byte) CMap {
+	h := Murmur32(key, 1) % uint32(len(s.shards))
+	return s.shards[h]
 }

@@ -22,7 +22,7 @@ import (
 
 func main() {
   // initialize c map
-  cMap := cmap.NewCMap()
+  cMap := cmap.NewMap()
 
   // insert key/val pair
   cMap.Put([]byte("hi"), []byte("world"))
@@ -35,8 +35,8 @@ func main() {
 
   // ===== OR
 
-  // initialize sharded c map
-  sMap := cmap.NewShardedMap(16)
+  // initialize sharded c map with number of shards
+  sMap := cmap.NewMap(16)
   sMap.Put([]byte("hi"), []byte("world"))
   val := sMap.Get([]byte("hi"))
   sMap.Delete([]byte("hi"))

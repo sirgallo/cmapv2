@@ -15,7 +15,7 @@ const (
 func Murmur32(data []byte, seed uint32) uint32 {
 	hash := seed
 	for idx := range len(data) / 4 {
-		chunk := binary.LittleEndian.Uint32(data[idx * 4:(idx + 1) * 4])
+		chunk := binary.LittleEndian.Uint32(data[idx*4 : (idx+1)*4])
 		rotateRight32(&hash, chunk)
 	}
 

@@ -6,15 +6,10 @@ import (
 )
 
 type CMap interface {
-	Root() Node
+	Root(shard ...int) Node
 	Put(key []byte, value []byte) bool
 	Get(key []byte) []byte
 	Delete(key []byte) bool
-	CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32
-}
-
-type shardedMap struct {
-	shards []CMap
 }
 
 type cMap struct {
@@ -24,12 +19,17 @@ type cMap struct {
 	pool         Pool
 }
 
+type shardedMap struct {
+	shards []CMap
+}
+
 type Node interface {
 	Key() []byte
 	Value() []byte
 	IsLeaf() bool
 	Bitmap() uint32
 	Children() []*node
+	Child(pos int) *node
 	PrintChildren()
 }
 

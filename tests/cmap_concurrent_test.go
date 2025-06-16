@@ -8,7 +8,7 @@ import (
 )
 
 func TestCMapSmallConcurrentOps(t *testing.T) {
-	cMap := cmap.NewShardedMap(totalShards)
+	cMap := cmap.NewMap(totalShards)
 
 	t.Run("test insert", func(t *testing.T) {
 		runWithWorkers(smallInputSize, workerCount, func(idx int) {
@@ -38,7 +38,7 @@ func TestCMapSmallConcurrentOps(t *testing.T) {
 }
 
 func TestCMapLargeConcurrentOps(t *testing.T) {
-	cMap := cmap.NewShardedMap(totalShards)
+	cMap := cmap.NewMap(totalShards)
 
 	t.Run("test insert", func(t *testing.T) {
 		runWithWorkers(largeInputSize, workerCount, func(idx int) {

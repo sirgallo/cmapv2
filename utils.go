@@ -1,12 +1,11 @@
 package cmap
 
 import (
-	"fmt"
 	"math"
 	"math/bits"
 )
 
-func (cMap *cMap) CalculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
+func (cMap *cMap) calculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
 	if level%cMap.hashChunks == 0 || hash == 0 {
 		currChunk := level / cMap.hashChunks
 		seed := uint32(currChunk + 1)
@@ -49,21 +48,4 @@ func SetBit(bitmap uint32, position int) uint32 {
 
 func IsBitSet(bitmap uint32, position int) bool {
 	return (bitmap & (1 << position)) != 0
-}
-
-func (n *node) PrintChildren() {
-	if n == nil {
-		return
-	}
-
-	n.printChildrenRecursive(0)
-}
-
-func (n *node) printChildrenRecursive(level int) {
-	for idx, child := range n.Children() {
-		if child != nil {
-			fmt.Printf("Level: %d, Index: %d, Key: %s, Value: %v\n", level, idx, child.Key(), child.Value())
-			child.printChildrenRecursive(level+1)
-		}
-	}
 }

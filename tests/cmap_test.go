@@ -7,7 +7,7 @@ import (
 )
 
 func TestCMap(t *testing.T) {
-	cMap := cmap.NewCMap()
+	cMap := cmap.NewMap()
 
 	t.Run("test put", func(t *testing.T) {
 		cMap.Put([]byte("hello"), []byte("world"))

@@ -19,14 +19,23 @@ func TestMurmur(t *testing.T) {
 		levels := make([]int, 17)
 		totalLevels := 6
 		chunkSize := 5
-		cMap := cmap.NewCMap()
-		hash := cMap.CalculateHashForCurrentLevel(key, 0, 0)
+		hash := calculateHashForCurrentLevel(key, 0, 0)
 		for idx := range levels {
 			index := cmap.GetIndexForLevel(hash, chunkSize, idx, totalLevels)
 			t.Logf("hash: %d, index: %d", hash, index)
-			hash = cMap.CalculateHashForCurrentLevel(key, hash, idx+1)
+			hash = calculateHashForCurrentLevel(key, hash, idx+1)
 		}
 	})
 
 	t.Log("Done")
+}
+
+func calculateHashForCurrentLevel(key []byte, hash uint32, level int) uint32 {
+	if level%6 == 0 || hash == 0 {
+		currChunk := level / 6
+		seed := uint32(currChunk + 1)
+		return cmap.Murmur32(key, seed)
+	}
+
+	return hash
 }
