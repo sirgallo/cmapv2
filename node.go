@@ -4,59 +4,51 @@ import (
 	"fmt"
 )
 
-func (cMap *cMap) NewLNode(key []byte, value []byte) *node {
-	n := cMap.pool.GetNode()
-	n.setIsLeaf(true)
-	n.setKey(key)
-	n.setValue(value)
-	return n
+func NewLNode(key []byte, value []byte) *node {
+	return &node{
+		isLeaf: true,
+		key:    key,
+		value:  value,
+	}
 }
 
-func (cMap *cMap) NewINode() *node {
-	n := cMap.pool.GetNode()
-	n.setIsLeaf(false)
-	n.setBitmap(0)
-	n.setChildren([]*node{})
-	return n
+func NewINode() *node {
+	return &node{
+		isLeaf:   false,
+		bitmap:   0,
+		children: []*node{},
+	}
 }
 
-func (cMap *cMap) CopyNode(n *node) *node {
-	nodeCopy := cMap.pool.GetNode()
-	nodeCopy.setKey(n.Key())
-	nodeCopy.setValue(n.Value())
-	nodeCopy.setIsLeaf(n.IsLeaf())
-	nodeCopy.setBitmap(n.Bitmap())
-	nodeCopy.setChildren(make([]*node, len(n.children)))
-
-	copy(nodeCopy.children, n.children)
-	return nodeCopy
+func (n *node) copyNode() *node {
+	childrenCopy := make([]*node, len(n.children))
+	copy(childrenCopy, n.children)
+	return &node{
+		key:      n.Key(),
+		value:    n.Value(),
+		isLeaf:   n.IsLeaf(),
+		bitmap:   n.Bitmap(),
+		children: childrenCopy,
+	}
 }
 
-func (cMap *cMap) ExtendTable(orig []*node, bitMap uint32, pos int, newNode *node) []*node {
-	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*node, tableSize)
-
-	copy(newTable[:pos], orig[:pos])
+func (n *node) extendTable(bitMap uint32, pos int, newNode *node) {
+	newTable := make([]*node, calculateHammingWeight(bitMap))
+	copy(newTable[:pos], n.children[:pos])
 	newTable[pos] = newNode
-	copy(newTable[pos+1:], orig[pos:])
-	return newTable
+	copy(newTable[pos+1:], n.children[pos:])
+	n.children = newTable
 }
 
-func (cMap *cMap) ShrinkTable(orig []*node, bitMap uint32, pos int) []*node {
-	tableSize := calculateHammingWeight(bitMap)
-	newTable := make([]*node, tableSize)
-
-	copy(newTable[:pos], orig[:pos])
-	copy(newTable[pos:], orig[pos+1:])
-	return newTable
+func (n *node) shrinkTable(bitMap uint32, pos int) {
+	newTable := make([]*node, calculateHammingWeight(bitMap))
+	copy(newTable[:pos], n.children[:pos])
+	copy(newTable[pos:], n.children[pos+1:])
+	n.children = newTable
 }
 
 func (n *node) Key() []byte {
 	return n.key
-}
-
-func (n *node) setKey(key []byte) {
-	n.key = key
 }
 
 func (n *node) Value() []byte {
@@ -69,10 +61,6 @@ func (n *node) setValue(value []byte) {
 
 func (n *node) IsLeaf() bool {
 	return n.isLeaf
-}
-
-func (n *node) setIsLeaf(isLeaf bool) {
-	n.isLeaf = isLeaf
 }
 
 func (n *node) Bitmap() uint32 {
@@ -90,10 +78,6 @@ func (n *node) Children() []Node {
 	}
 
 	return children
-}
-
-func (n *node) setChildren(children []*node) {
-	n.children = children
 }
 
 func (n *node) Child(pos int) Node {

@@ -1,7 +1,6 @@
 package cmap
 
 import (
-	"sync"
 	"unsafe"
 )
 
@@ -16,7 +15,6 @@ type cMap struct {
 	root         unsafe.Pointer
 	bitChunkSize int
 	hashChunks   int
-	pool         Pool
 }
 
 type shardedMap struct {
@@ -39,13 +37,4 @@ type node struct {
 	isLeaf   bool
 	bitmap   uint32
 	children []*node
-}
-
-type Pool interface {
-	GetNode() *node
-	PutNode(n *node)
-}
-
-type pool struct {
-	node *sync.Pool
 }

@@ -19,20 +19,18 @@ const (
 )
 
 func Murmur32(data []byte, seed uint32) uint32 {
-	hash := seed
 	for idx := range len(data) / 4 {
-		chunk := binary.LittleEndian.Uint32(data[idx*4 : (idx+1)*4])
-		rotateRight32(&hash, chunk)
+		rotateRight32(&seed, binary.LittleEndian.Uint32(data[idx*4:(idx+1)*4]))
 	}
 
-	handleRemainingBytes32(&hash, data)
-	hash ^= uint32(len(data)) // total length
-	hash ^= hash >> 16
-	hash *= c32_4
-	hash ^= hash >> 13
-	hash *= c32_5
-	hash ^= hash >> 16
-	return hash
+	handleRemainingBytes32(&seed, data)
+	seed ^= uint32(len(data)) // total length
+	seed ^= seed >> 16
+	seed *= c32_4
+	seed ^= seed >> 13
+	seed *= c32_5
+	seed ^= seed >> 16
+	return seed
 }
 
 func rotateRight32(hash *uint32, chunk uint32) {
@@ -46,18 +44,18 @@ func rotateRight32(hash *uint32, chunk uint32) {
 }
 
 func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
-	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes)%4:]
-	if len(remaining) > 0 {
+	idx := len(dataAsBytes) - len(dataAsBytes)%4
+	if len(dataAsBytes[idx:]) > 0 {
 		var chunk uint32
-		switch len(remaining) {
+		switch len(dataAsBytes[idx:]) {
 		case 3:
-			chunk |= uint32(remaining[2]) << 16
+			chunk |= uint32(dataAsBytes[idx:][2]) << 16
 			fallthrough
 		case 2:
-			chunk |= uint32(remaining[1]) << 8
+			chunk |= uint32(dataAsBytes[idx:][1]) << 8
 			fallthrough
 		case 1:
-			chunk |= uint32(remaining[0])
+			chunk |= uint32(dataAsBytes[idx:][0])
 			chunk *= c32_1
 			chunk = (chunk << 15) | (chunk >> 17) // Rotate right by 15
 			chunk *= c32_2
@@ -67,20 +65,18 @@ func handleRemainingBytes32(hash *uint32, dataAsBytes []byte) {
 }
 
 func Murmur64(data []byte, seed uint64) uint64 {
-	hash := seed
 	for idx := range len(data) / 8 {
-		chunk := binary.LittleEndian.Uint64(data[idx*8 : (idx+1)*8])
-		rotateRight64(&hash, chunk)
+		rotateRight64(&seed, binary.LittleEndian.Uint64(data[idx*8:(idx+1)*8]))
 	}
 
-	handleRemainingBytes64(&hash, data)
-	hash ^= uint64(len(data))
-	hash ^= hash >> 33
-	hash *= c64_4
-	hash ^= hash >> 29
-	hash *= c64_5
-	hash ^= hash >> 32
-	return hash
+	handleRemainingBytes64(&seed, data)
+	seed ^= uint64(len(data))
+	seed ^= seed >> 33
+	seed *= c64_4
+	seed ^= seed >> 29
+	seed *= c64_5
+	seed ^= seed >> 32
+	return seed
 }
 
 func rotateRight64(hash *uint64, chunk uint64) {
@@ -94,30 +90,30 @@ func rotateRight64(hash *uint64, chunk uint64) {
 }
 
 func handleRemainingBytes64(hash *uint64, dataAsBytes []byte) {
-	remaining := dataAsBytes[len(dataAsBytes)-len(dataAsBytes)%8:]
-	if len(remaining) > 0 {
+	idx := len(dataAsBytes) - len(dataAsBytes)%8
+	if len(dataAsBytes[idx:]) > 0 {
 		var chunk uint64
-		switch len(remaining) {
+		switch len(dataAsBytes[idx:]) {
 		case 7:
-			chunk |= uint64(remaining[6]) << 48
+			chunk |= uint64(dataAsBytes[idx:][6]) << 48
 			fallthrough
 		case 6:
-			chunk |= uint64(remaining[5]) << 40
+			chunk |= uint64(dataAsBytes[idx:][5]) << 40
 			fallthrough
 		case 5:
-			chunk |= uint64(remaining[4]) << 32
+			chunk |= uint64(dataAsBytes[idx:][4]) << 32
 			fallthrough
 		case 4:
-			chunk |= uint64(remaining[3]) << 24
+			chunk |= uint64(dataAsBytes[idx:][3]) << 24
 			fallthrough
 		case 3:
-			chunk |= uint64(remaining[2]) << 16
+			chunk |= uint64(dataAsBytes[idx:][2]) << 16
 			fallthrough
 		case 2:
-			chunk |= uint64(remaining[1]) << 8
+			chunk |= uint64(dataAsBytes[idx:][1]) << 8
 			fallthrough
 		case 1:
-			chunk |= uint64(remaining[0])
+			chunk |= uint64(dataAsBytes[idx:][0])
 			chunk *= c64_1
 			chunk = (chunk << 31) | (chunk >> 33) // Rotate right by 31
 			chunk *= c64_2

@@ -20,16 +20,13 @@ func newShardedMap(shards int) CMap {
 }
 
 func newCMap() CMap {
-	nPool := newPool()
-	rootNode := nPool.GetNode()
-	rootNode.isLeaf = false
-	rootNode.bitmap = 0
-	rootNode.children = []*node{}
-
 	return &cMap{
 		bitChunkSize: 5,
 		hashChunks:   6,
-		root:         unsafe.Pointer(rootNode),
-		pool:         nPool,
+		root: unsafe.Pointer(&node{
+			isLeaf:   false,
+			bitmap:   0,
+			children: []*node{},
+		}),
 	}
 }

@@ -85,6 +85,28 @@ results (with sharded map):
 
   --- PASS: TestParallelReadWrites/test_init_key_val_pairs_in_map (0.30s)
   --- PASS: TestParallelReadWrites/test_write_new_key_vals_in_map (0.50s)
+
+3 workers, 4096 shards:
+
+1,000,000 kv pairs with 64 byte keys and 64 byte values
+    --- PASS: TestCMapSmallConcurrentOps/test_insert (0.52s)
+    --- PASS: TestCMapSmallConcurrentOps/test_retrieve (0.23s)
+    --- PASS: TestCMapSmallConcurrentOps/test_delete (0.46s)
+
+10,000,000 kv pairs with 64 byte keys and 64 byte values
+    --- PASS: TestCMapLargeConcurrentOps/test_insert (7.01s)
+    --- PASS: TestCMapLargeConcurrentOps/test_retrieve (3.64s)
+    --- PASS: TestCMapLargeConcurrentOps/test_delete (7.41s)
+
+
+20,000,000 kv pairs with 64 byte keys and 64 byte values
+    --- PASS: TestCMapLargeConcurrentOps/test_insert (15.90s)
+    --- PASS: TestCMapLargeConcurrentOps/test_retrieve (8.31s)
+    --- PASS: TestCMapLargeConcurrentOps/test_delete (17.03s)
+
+1,000,000 kv pairs with 64 byte keys and 64 byte values
+    --- PASS: TestParallelReadWrites/test_init_key_val_pairs_in_map (0.68s)
+    --- PASS: TestParallelReadWrites/test_write_new_key_vals_in_map (1.14s)
 ```
 
 comparing to `sync.Map`:
@@ -103,6 +125,11 @@ comparing to `sync.Map`:
   --- PASS: TestSyncMapLargeConcurrentOps/test_insert (8.30s)
   --- PASS: TestSyncMapLargeConcurrentOps/test_retrieve (3.33s)
   --- PASS: TestSyncMapLargeConcurrentOps/test_delete (2.13s)
+
+20,000,000 kv pairs with 64 byte keys and 64 byte values
+    --- PASS: TestSyncMapLargeConcurrentOps/test_insert (17.04s)
+    --- PASS: TestSyncMapLargeConcurrentOps/test_retrieve (9.32s)
+    --- PASS: TestSyncMapLargeConcurrentOps/test_delete (3.58s)
 
 1,000,000 kv pairs with 64 byte keys and 64 byte values
 

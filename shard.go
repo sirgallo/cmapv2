@@ -12,21 +12,17 @@ func (sMap *shardedMap) Root(shards ...int) Node {
 }
 
 func (sMap *shardedMap) Put(key []byte, value []byte) bool {
-	shard := sMap.getShard(key)
-	return shard.Put(key, value)
+	return sMap.getShard(key).Put(key, value)
 }
 
 func (sMap *shardedMap) Get(key []byte) []byte {
-	shard := sMap.getShard(key)
-	return shard.Get(key)
+	return sMap.getShard(key).Get(key)
 }
 
 func (sMap *shardedMap) Delete(key []byte) bool {
-	shard := sMap.getShard(key)
-	return shard.Delete(key)
+	return sMap.getShard(key).Delete(key)
 }
 
 func (s *shardedMap) getShard(key []byte) CMap {
-	h := Murmur64(key, 1) % uint64(len(s.shards))
-	return s.shards[h]
+	return s.shards[Murmur64(key, 1)%uint64(len(s.shards))]
 }
