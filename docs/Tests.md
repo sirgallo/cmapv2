@@ -98,7 +98,6 @@ results (with sharded map):
     --- PASS: TestCMapLargeConcurrentOps/test_retrieve (3.64s)
     --- PASS: TestCMapLargeConcurrentOps/test_delete (7.41s)
 
-
 20,000,000 kv pairs with 64 byte keys and 64 byte values
     --- PASS: TestCMapLargeConcurrentOps/test_insert (15.90s)
     --- PASS: TestCMapLargeConcurrentOps/test_retrieve (8.31s)

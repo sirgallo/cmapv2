@@ -37,7 +37,11 @@ func calculateHammingWeight(bitmap uint32) int {
 }
 
 func SetBit(bitmap uint32, position int) uint32 {
-	return bitmap ^ (1 << position)
+	return bitmap | (1 << position)
+}
+
+func UnSetBit(bitmap uint32, position int) uint32 {
+	return bitmap &^ (1 << position)
 }
 
 func IsBitSet(bitmap uint32, position int) bool {

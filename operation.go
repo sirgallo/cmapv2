@@ -13,7 +13,8 @@ func (cMap *cMap) Root(shard ...int) Node {
 
 func (cMap *cMap) Put(key []byte, value []byte) bool {
 	for {
-		completed := cMap.putRecursive(&cMap.root, key, value, 0, 0)
+		root := (*node)(atomic.LoadPointer(&cMap.root))
+		completed := cMap.compareAndSwap(&cMap.root, root, cMap.putRecursive(root, key, value, 0, 0))
 		if completed {
 			return true
 		}
@@ -21,36 +22,31 @@ func (cMap *cMap) Put(key []byte, value []byte) bool {
 	}
 }
 
-func (cMap *cMap) putRecursive(nodePtr *unsafe.Pointer, key []byte, value []byte, hash uint32, level int) bool {
+func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash uint32, level int) *node {
 	hash = cMap.calculateHashForCurrentLevel(key, hash, level)
 	index := cMap.getSparseIndex(hash, level)
-	currNode := (*node)(atomic.LoadPointer(nodePtr))
 	nodeCopy := currNode.copyNode()
 	pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
 
 	if !IsBitSet(nodeCopy.Bitmap(), index) {
 		nodeCopy.setBitmap(SetBit(nodeCopy.Bitmap(), index))
 		nodeCopy.extendTable(nodeCopy.Bitmap(), pos, NewLNode(key, value))
-		return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 	} else {
 		if nodeCopy.Child(pos).IsLeaf() {
 			if bytes.Equal(key, nodeCopy.Child(pos).Key()) {
 				nodeCopy.children[pos].setValue(value)
-				return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 			} else {
-				iNodePtr := unsafe.Pointer(NewINode())
-				cMap.putRecursive(&iNodePtr, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
-				cMap.putRecursive(&iNodePtr, key, value, hash, level+1)
-				nodeCopy.setChild((*node)(atomic.LoadPointer(&iNodePtr)), pos)
-				return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
+				newINode := NewINode()
+				newINode = cMap.putRecursive(newINode, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
+				newINode = cMap.putRecursive(newINode, key, value, hash, level+1)
+				nodeCopy.setChild(newINode, pos)
 			}
 		} else {
-			childPtr := unsafe.Pointer(nodeCopy.children[pos])
-			cMap.putRecursive(&childPtr, key, value, hash, level+1)
-			nodeCopy.setChild((*node)(atomic.LoadPointer(&childPtr)), pos)
-			return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
+			nodeCopy.setChild(cMap.putRecursive(nodeCopy.children[pos], key, value, hash, level+1), pos)
 		}
 	}
+
+	return nodeCopy
 }
 
 func (cMap *cMap) Get(key []byte) []byte {
@@ -73,7 +69,8 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 
 func (cMap *cMap) Delete(key []byte) bool {
 	for {
-		completed := cMap.deleteRecursive(&cMap.root, key, 0, 0)
+		root := (*node)(atomic.LoadPointer(&cMap.root))
+		completed := cMap.compareAndSwap(&cMap.root, root, cMap.deleteRecursive(root, key, 0, 0))
 		if completed {
 			return true
 		}
@@ -81,33 +78,29 @@ func (cMap *cMap) Delete(key []byte) bool {
 	}
 }
 
-func (cMap *cMap) deleteRecursive(nodePtr *unsafe.Pointer, key []byte, hash uint32, level int) bool {
+func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level int) *node {
 	hash = cMap.calculateHashForCurrentLevel(key, hash, level)
 	index := cMap.getSparseIndex(hash, level)
-	currNode := (*node)(atomic.LoadPointer(nodePtr))
 	nodeCopy := currNode.copyNode()
 
-	if !IsBitSet(nodeCopy.Bitmap(), index) {
-		return true
-	} else {
+	if IsBitSet(nodeCopy.Bitmap(), index) {
 		pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
 		if nodeCopy.Child(pos).IsLeaf() {
 			if bytes.Equal(key, nodeCopy.Child(pos).Key()) {
-				nodeCopy.setBitmap(SetBit(nodeCopy.Bitmap(), index))
+				nodeCopy.setBitmap(UnSetBit(nodeCopy.Bitmap(), index))
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
-				return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 			}
-			return false
 		} else {
-			childPtr := unsafe.Pointer(nodeCopy.children[pos])
-			cMap.deleteRecursive(&childPtr, key, hash, level+1)
+			child := cMap.deleteRecursive(nodeCopy.children[pos], key, hash, level+1)
+			nodeCopy.setChild(child, pos)
 			if calculateHammingWeight(nodeCopy.Bitmap()) == 0 {
 				nodeCopy.setBitmap(SetBit(nodeCopy.Bitmap(), index))
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
 			}
-			return cMap.compareAndSwap(nodePtr, currNode, nodeCopy)
 		}
 	}
+
+	return nodeCopy
 }
 
 func (cMap *cMap) compareAndSwap(nodePtr *unsafe.Pointer, currNode *node, nodeCopy *node) bool {
