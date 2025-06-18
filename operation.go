@@ -73,8 +73,7 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 func (cMap *cMap) Delete(key []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root,
-			cMap.deleteRecursive(root, key, 0, 0))
+		completed := cMap.compareAndSwap(&cMap.root, root, cMap.deleteRecursive(root, key, 0, 0))
 		if completed {
 			return true
 		}
@@ -95,11 +94,12 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
 			}
 		} else {
-			nodeCopy.setChild(
-				cMap.deleteRecursive(nodeCopy.children[pos], key, hash, level+1), pos)
-			if calculateHammingWeight(nodeCopy.Bitmap()) == 0 {
+			childCopy := cMap.deleteRecursive(nodeCopy.children[pos], key, hash, level+1)				
+			if calculateHammingWeight(childCopy.Bitmap()) == 0 {
 				nodeCopy.setBitmap(ClearBit(nodeCopy.Bitmap(), index))
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
+			} else {
+				nodeCopy.setChild(childCopy, pos)
 			}
 		}
 	}

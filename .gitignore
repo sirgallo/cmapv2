@@ -1,5 +1,7 @@
 benchmarks.test
 cmapv2.test
+coverage.out
+cov.html
 cpu.prof
 fuzz.test
 mem.prof

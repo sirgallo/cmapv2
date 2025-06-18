@@ -55,7 +55,9 @@ go test -v -race ./
 
 or bench:
 ```bash
-go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./
+go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof -coverprofile=coverage.out ./
+go tool cover -html=coverage.out -o cov.html
+open cov.html
 ```
 
 and check results:

@@ -45,7 +45,7 @@ func TestUtils(t *testing.T) {
 		}
 		b2 := SetBit(b1, 3)
 		if b2 != b1 {
-			t.Fatalf("SetBit not idempotent: %b → %b", b1, b2)
+			t.Fatalf("SetBit not idempotent: %b %b", b1, b2)
 		}
 
 		c1 := ClearBit(b2, 3)
@@ -54,7 +54,7 @@ func TestUtils(t *testing.T) {
 		}
 		c2 := ClearBit(c1, 3)
 		if c2 != c1 {
-			t.Fatalf("ClearBit not idempotent: %b → %b", c1, c2)
+			t.Fatalf("ClearBit not idempotent: %b %b", c1, c2)
 		}
 	})
 

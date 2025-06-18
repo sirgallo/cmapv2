@@ -23,13 +23,19 @@ func init() {
 
 func BenchmarkMap(b *testing.B) {
 	m := cmap.NewMap(4096)
+	for i := range 1000000 {
+		k := mixedKeys[i]
+		m.Put(k, k)
+	}
+
+  b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for pb.Next() {
 			op := rnd.Intn(3)
 			k := mixedKeys[rnd.Intn(len(mixedKeys))]
 			switch op {
-			case 0: m.Put(k, k)
+			case 0: m.Put(k, mixedKeys[rnd.Intn(len(mixedKeys))])
 			case 1: m.Get(k)
 			case 2: m.Delete(k)
 			}
@@ -39,13 +45,19 @@ func BenchmarkMap(b *testing.B) {
 
 func BenchmarkSyncMap(b *testing.B) {
 	m := sync.Map{}
+	for i := range 1000000 {
+		k := sKeys[i]
+		m.Store(k, k)
+	}
+
+	b.ResetTimer()
 	b.RunParallel(func(pb *testing.PB) {
 		rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 		for pb.Next() {
 			op := rnd.Intn(3)
 			k := sKeys[rnd.Intn(len(sKeys))]
 			switch op {
-			case 0: m.Store(k, k)
+			case 0: m.Store(k, sKeys[rnd.Intn(len(sKeys))])
 			case 1: m.Load(k)
 			case 2: m.Delete(k)
 			}
