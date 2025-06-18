@@ -2,13 +2,16 @@ package cmap
 
 import (
 	"fmt"
+	"slices"
 )
 
 func NewLNode(key []byte, value []byte) *node {
+	keyCopy := slices.Clone(key)
+	valueCopy := slices.Clone(value)
 	return &node{
 		isLeaf: true,
-		key:    key,
-		value:  value,
+		key:    keyCopy,
+		value:  valueCopy,
 	}
 }
 
@@ -23,9 +26,11 @@ func NewINode() *node {
 func (n *node) copyNode() *node {
 	childrenCopy := make([]*node, len(n.children))
 	copy(childrenCopy, n.children)
+	key := slices.Clone(n.Key())
+	value := slices.Clone(n.Value())
 	return &node{
-		key:      n.Key(),
-		value:    n.Value(),
+		key:      key,
+		value:    value,
 		isLeaf:   n.IsLeaf(),
 		bitmap:   n.Bitmap(),
 		children: childrenCopy,
@@ -53,10 +58,6 @@ func (n *node) Key() []byte {
 
 func (n *node) Value() []byte {
 	return n.value
-}
-
-func (n *node) setValue(value []byte) {
-	n.value = value
 }
 
 func (n *node) IsLeaf() bool {
@@ -92,7 +93,6 @@ func (n *node) PrintChildren() {
 	if n == nil {
 		return
 	}
-
 	n.printChildrenRecursive(0)
 }
 

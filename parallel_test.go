@@ -1,19 +1,17 @@
-package cmapv2tests
+package cmap
 
 import (
 	"bytes"
 	"testing"
-
-	"github.com/sirgallo/cmapv2"
 )
 
-var parallelTestMap cmap.CMap
+var parallelTestMap CMap
 
 func init() {
-	parallelTestMap = cmap.NewMap(totalShards)
+	parallelTestMap = NewMap(totalShards)
 	runWithWorkers(smallInputSize, workerCount, func(idx int) {
-		key, val := generateKeyVal64(idx)
-		parallelTestMap.Put(key, val)
+		key := generateKeyVal64(idx)
+		parallelTestMap.Put(key, key)
 	})
 }
 
@@ -21,10 +19,10 @@ func TestParallelReadWrites(t *testing.T) {
 	t.Run("test init key val pairs in map", func(t *testing.T) {
 		t.Parallel()
 		runWithWorkers(smallInputSize, workerCount, func(idx int) {
-			key, val := generateKeyVal64(idx)
+			key := generateKeyVal64(idx)
 			value := parallelTestMap.Get(key)
-			if !bytes.Equal(value, val) {
-				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, val)
+			if !bytes.Equal(value, key) {
+				t.Errorf("actual value not equal to expected: actual(%s), expected(%s)", value, key)
 			}
 		})
 	})
@@ -32,10 +30,11 @@ func TestParallelReadWrites(t *testing.T) {
 	t.Run("test write new key vals in map", func(t *testing.T) {
 		t.Parallel()
 		runWithWorkers(smallInputSize, workerCount, func(idx int) {
-			key, val := generateKeyVal64(idx + smallInputSize)
-			parallelTestMap.Put(key, val)
+			key := generateKeyVal64(idx + smallInputSize)
+			parallelTestMap.Put(key, key)
 		})
 	})
 
 	t.Log("Done")
 }
+

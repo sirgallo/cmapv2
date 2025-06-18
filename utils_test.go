@@ -1,24 +1,22 @@
-package cmapv2tests
+package cmap
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/sirgallo/cmapv2"
 )
 
-func TestCMapUtils32(t *testing.T) {
+func TestUtils(t *testing.T) {
 	t.Run("test get index", func(t *testing.T) {
 		chunkSize := 5
 		seed := uint32(1)
 		key1 := []byte("hello")
-		hash1 := cmap.Murmur32(key1, seed)
+		hash1 := Murmur32(key1, seed)
 
 		fmt.Printf("hash 1: %032b\n:", hash1)
 		expectedValues1 := []int{20, 11, 2, 20, 21, 23}
 
 		for idx, val := range expectedValues1 {
-			index := cmap.GetIndex(hash1, chunkSize, idx)
+			index := GetIndex(hash1, chunkSize, idx)
 			t.Logf("index: %d, expected: %d", index, val)
 			if index != val {
 				t.Error("index produced does not match expected value")
@@ -26,12 +24,12 @@ func TestCMapUtils32(t *testing.T) {
 		}
 
 		key2 := []byte("new")
-		hash2 := cmap.Murmur32(key2, seed)
+		hash2 := Murmur32(key2, seed)
 		fmt.Printf("hash 2: %032b\n:", hash2)
 		expectedValues2 := []int{16, 12, 18, 25, 29, 22}
 
 		for idx, val := range expectedValues2 {
-			index := cmap.GetIndex(hash2, chunkSize, idx)
+			index := GetIndex(hash2, chunkSize, idx)
 			t.Logf("index: %d, expected: %d", index, val)
 			if index != val {
 				t.Error("index produced does not match expected value")
@@ -39,27 +37,48 @@ func TestCMapUtils32(t *testing.T) {
 		}
 	})
 
+	t.Run("test set/clear bit idempotent", func(t *testing.T) {
+		var b uint32
+		b1 := SetBit(b, 3)
+		if b1 != 1<<3 {
+			t.Fatalf("SetBit: got %b, want %b", b1, 1<<3)
+		}
+		b2 := SetBit(b1, 3)
+		if b2 != b1 {
+			t.Fatalf("SetBit not idempotent: %b → %b", b1, b2)
+		}
+
+		c1 := ClearBit(b2, 3)
+		if c1 != 0 {
+			t.Fatalf("ClearBit failed: got %b", c1)
+		}
+		c2 := ClearBit(c1, 3)
+		if c2 != c1 {
+			t.Fatalf("ClearBit not idempotent: %b → %b", c1, c2)
+		}
+	})
+
 	t.Run("test set bitmap", func(t *testing.T) {
 		bitmap := uint32(0)
 		index1 := 1
-		bitmap = cmap.SetBit(bitmap, index1)
+		bitmap = SetBit(bitmap, index1)
 		fmt.Printf("current bitmap: %032b\n", bitmap)
 
-		isBitSet1 := cmap.IsBitSet(bitmap, index1)
+		isBitSet1 := IsBitSet(bitmap, index1)
 		if !isBitSet1 {
 			t.Error("bit at index 1 is not set")
 		}
 
 		index5 := 5
-		bitmap = cmap.SetBit(bitmap, index5)
+		bitmap = SetBit(bitmap, index5)
 		fmt.Printf("current bitmap: %032b\n", bitmap)
-		isBitSet5 := cmap.IsBitSet(bitmap, index5)
+		isBitSet5 := IsBitSet(bitmap, index5)
 		if !isBitSet5 {
 			t.Error("bit at index 5 is not set")
 		}
 	})
 
-	t.Log("Done")
+	t.Log("done")
 }
 
 /*

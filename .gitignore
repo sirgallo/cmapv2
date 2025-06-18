@@ -1,3 +1,5 @@
+benchmarks.test
+cmapv2.test
 cpu.prof
+fuzz.test
 mem.prof
-tests.test

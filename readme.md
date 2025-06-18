@@ -46,18 +46,39 @@ func main() {
 ## tests
 
 ```bash
-go test -v ./tests
+go test -v ./
+```
+
+or with race:
+```bash
+go test -v -race ./
 ```
 
 or bench:
 ```bash
-go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./tests
+go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./
 ```
 
 and check results:
 ```bash
-go tool pprof -http=:8080 tests.test cpu.prof
-go tool pprof -http=:8080 tests.test mem.prof
+go tool pprof -http=:8080 cmapv2.test cpu.prof
+go tool pprof -http=:8080 cmapv2.test mem.prof
+```
+
+## benchmark
+
+```bash
+go test -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./benchmarks
+```
+
+or with race:
+```bash
+go test -race -v -bench=. -benchmem -cpuprofile cpu.prof -memprofile mem.prof ./benchmarks
+```
+## fuzz
+
+```bash
+go test -fuzz=FuzzConcurrentOps -fuzztime=30s ./fuzz 
 ```
 
 ## sources

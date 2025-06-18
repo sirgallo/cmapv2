@@ -1,7 +1,6 @@
 package cmap
 
 import (
-	"math"
 	"math/bits"
 )
 
@@ -9,7 +8,6 @@ func (cMap *cMap) calculateHashForCurrentLevel(key []byte, hash uint32, level in
 	if level%cMap.hashChunks == 0 || hash == 0 {
 		return Murmur32(key, uint32(level/cMap.hashChunks+1))
 	}
-
 	return hash
 }
 
@@ -27,9 +25,8 @@ func GetIndexForLevel(hash uint32, chunkSize int, level int, hashChunks int) int
 }
 
 func GetIndex(hash uint32, chunkSize int, level int) int {
-	slots := int(math.Pow(float64(2), float64(chunkSize)))
-	shiftSize := slots - (chunkSize * (level + 1))
-	return int(hash >> shiftSize & uint32(slots-1))
+	shiftSize := 32 - (chunkSize * (level + 1))
+	return int(hash >> shiftSize & uint32(31))
 }
 
 func calculateHammingWeight(bitmap uint32) int {
@@ -40,7 +37,7 @@ func SetBit(bitmap uint32, position int) uint32 {
 	return bitmap | (1 << position)
 }
 
-func UnSetBit(bitmap uint32, position int) uint32 {
+func ClearBit(bitmap uint32, position int) uint32 {
 	return bitmap &^ (1 << position)
 }
 

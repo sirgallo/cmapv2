@@ -1,13 +1,11 @@
-package cmapv2tests
+package cmap
 
 import (
 	"testing"
-
-	"github.com/sirgallo/cmapv2"
 )
 
 func TestCMap(t *testing.T) {
-	cMap := cmap.NewMap()
+	cMap := NewMap()
 
 	t.Run("test put", func(t *testing.T) {
 		cMap.Put([]byte("hello"), []byte("world"))
@@ -91,6 +89,14 @@ func TestCMap(t *testing.T) {
 		t.Log("actual bitmap:", rootBitMapAfterDelete, "expected bitmap:", expectedRootBitmapAfterDelete)
 		if expectedRootBitmapAfterDelete != rootBitMapAfterDelete {
 			t.Errorf("actual bitmap does not match expected bitmap: actual(%032b), expected(%032b)\n", rootBitMapAfterDelete, expectedRootBitmapAfterDelete)
+		}
+	})
+
+	t.Run("test get missing", func(t *testing.T) {
+		m := NewMap()
+		v := m.Get([]byte("does-not-exist"))
+		if len(v) != 0 {
+			t.Errorf("expected miss, got value=%q", v)
 		}
 	})
 
