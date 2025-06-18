@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"runtime"
 	"strconv"
-	"sync/atomic"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"unsafe"
 )

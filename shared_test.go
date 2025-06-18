@@ -7,10 +7,10 @@ import (
 
 var largeInputSize int = 10000000
 var smallInputSize int = 1000000
-var totalShards int = 4096  // = 65535
+var totalShards int = 4096 // = 65535
 var workerCount int = 128
 
-func generateKeyVal64(index int) ([]byte) {
+func generateKeyVal64(index int) []byte {
 	key := make([]byte, 64)
 	for idx := range 8 {
 		offset := idx * 8

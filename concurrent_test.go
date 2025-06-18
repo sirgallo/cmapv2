@@ -35,7 +35,6 @@ func TestCMapConcurrentOps(t *testing.T) {
 	t.Log("done")
 }
 
-
 func TestCMapLargeConcurrentOps(t *testing.T) {
 	cMap := NewMap(totalShards)
 
