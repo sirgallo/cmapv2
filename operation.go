@@ -14,8 +14,7 @@ func (cMap *cMap) Root(shard ...int) Node {
 func (cMap *cMap) Put(key []byte, value []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root,
-			cMap.putRecursive(root, key, value, 0, 0))
+		completed := cMap.compareAndSwap(&cMap.root, root, cMap.putRecursive(root, key, value, 0, 0))
 		if completed {
 			return true
 		}
@@ -28,7 +27,6 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 	index := cMap.getSparseIndex(hash, level)
 	nodeCopy := currNode.copyNode()
 	pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
-
 	if !IsBitSet(nodeCopy.Bitmap(), index) {
 		nodeCopy.setBitmap(SetBit(nodeCopy.Bitmap(), index))
 		nodeCopy.extendTable(nodeCopy.Bitmap(), pos, NewLNode(key, value))
@@ -37,9 +35,7 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 			if bytes.Equal(key, nodeCopy.Child(pos).Key()) {
 				nodeCopy.setChild(NewLNode(key, value), pos)
 			} else {
-				newINode := NewINode()
-				newINode = cMap.putRecursive(
-					newINode, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
+				newINode := cMap.putRecursive(NewINode(), nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
 				newINode = cMap.putRecursive(newINode, key, value, hash, level+1)
 				nodeCopy.setChild(newINode, pos)
 			}
@@ -48,7 +44,6 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 				cMap.putRecursive(nodeCopy.children[pos], key, value, hash, level+1), pos)
 		}
 	}
-
 	return nodeCopy
 }
 
@@ -85,7 +80,6 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 	hash = cMap.calculateHashForCurrentLevel(key, hash, level)
 	index := cMap.getSparseIndex(hash, level)
 	nodeCopy := currNode.copyNode()
-
 	if IsBitSet(nodeCopy.Bitmap(), index) {
 		pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
 		if nodeCopy.Child(pos).IsLeaf() {
@@ -94,7 +88,7 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
 			}
 		} else {
-			childCopy := cMap.deleteRecursive(nodeCopy.children[pos], key, hash, level+1)				
+			childCopy := cMap.deleteRecursive(nodeCopy.children[pos], key, hash, level+1)
 			if calculateHammingWeight(childCopy.Bitmap()) == 0 {
 				nodeCopy.setBitmap(ClearBit(nodeCopy.Bitmap(), index))
 				nodeCopy.shrinkTable(nodeCopy.Bitmap(), pos)
@@ -103,7 +97,6 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 			}
 		}
 	}
-
 	return nodeCopy
 }
 

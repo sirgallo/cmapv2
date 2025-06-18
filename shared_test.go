@@ -8,7 +8,7 @@ import (
 var largeInputSize int = 10000000
 var smallInputSize int = 1000000
 var totalShards int = 4096 // = 65535
-var workerCount int = 128
+var workerCount int = 3
 
 func generateKeyVal64(index int) []byte {
 	key := make([]byte, 64)

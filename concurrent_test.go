@@ -39,6 +39,7 @@ func TestCMapLargeConcurrentOps(t *testing.T) {
 	cMap := NewMap(totalShards)
 
 	t.Run("test concurrent small", func(t *testing.T) {
+		t.Parallel()
 		runWithWorkers(smallInputSize, workerCount, func(idx int) {
 			key := generateKeyVal64(idx)
 			val := generateKeyVal64(idx + largeInputSize)
@@ -51,6 +52,7 @@ func TestCMapLargeConcurrentOps(t *testing.T) {
 	})
 
 	t.Run("test concurrent large", func(t *testing.T) {
+		t.Parallel()
 		runWithWorkers(largeInputSize, workerCount, func(idx int) {
 			key := generateKeyVal64(idx)
 			cMap.Put(key, key)
