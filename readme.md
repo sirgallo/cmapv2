@@ -10,7 +10,6 @@ go mod tidy
 
 Make sure to run go mod tidy to install dependencies.
 
-
 ## usage
 
 ```go
