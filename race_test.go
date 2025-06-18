@@ -55,24 +55,29 @@ func TestCMapRace(t *testing.T) {
 
 		const M = 100000
 		var wg sync.WaitGroup
-		wg.Add(2)
+		for range workerCount {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for range M {
+					m.Delete(victim)
+					runtime.Gosched()
+					m.Put(victim, victim)
+					runtime.Gosched()
+				}
+			}()
+		}
 
-		go func() {
-			defer wg.Done()
-			for range M {
-				m.Delete(victim)
-				runtime.Gosched()
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-			for range M {
-				_ = m.Get(victim)
-				runtime.Gosched()
-			}
-		}()
-
+		for range workerCount {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for range M {
+					_ = m.Get(victim)
+					runtime.Gosched()
+				}
+			}()
+		}
 		wg.Wait()
 	})
 
@@ -100,23 +105,27 @@ func TestCMapRace(t *testing.T) {
 		}
 
 		var wg sync.WaitGroup
-		wg.Add(2)
+		for range workerCount {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for i := range K {
+					m.Delete([]byte(fmt.Sprintf("k-%d", i)))
+					runtime.Gosched()
+				}
+			}()
+		}
 
-		go func() {
-			defer wg.Done()
-			for i := range K {
-				m.Delete([]byte(fmt.Sprintf("k-%d", i)))
-				runtime.Gosched()
-			}
-		}()
-
-		go func() {
-			defer wg.Done()
-			for i := range K {
-				_ = oldMap.Get([]byte(fmt.Sprintf("k-%d", i)))
-				runtime.Gosched()
-			}
-		}()
+		for range workerCount {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for i := range K {
+					_ = oldMap.Get([]byte(fmt.Sprintf("k-%d", i)))
+					runtime.Gosched()
+				}
+			}()
+		}
 		wg.Wait()
 	})
 

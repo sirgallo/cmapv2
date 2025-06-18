@@ -40,8 +40,8 @@ func (n *node) copyNode() *node {
 func (n *node) extendTable(bitMap uint32, pos int, newNode *node) {
 	newTable := make([]*node, calculateHammingWeight(bitMap))
 	copy(newTable[:pos], n.children[:pos])
-	newTable[pos] = newNode
 	copy(newTable[pos+1:], n.children[pos:])
+	newTable[pos] = newNode
 	n.children = newTable
 }
 
@@ -77,7 +77,6 @@ func (n *node) Children() []Node {
 	for _, child := range n.children {
 		children = append(children, child)
 	}
-
 	return children
 }
 

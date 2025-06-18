@@ -14,7 +14,8 @@ func (cMap *cMap) Root(shard ...int) Node {
 func (cMap *cMap) Put(key []byte, value []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root, cMap.putRecursive(root, key, value, 0, 0))
+		completed := cMap.compareAndSwap(&cMap.root, root,
+			cMap.putRecursive(root, key, value, 0, 0))
 		if completed {
 			return true
 		}
@@ -37,7 +38,8 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 				nodeCopy.setChild(NewLNode(key, value), pos)
 			} else {
 				newINode := NewINode()
-				newINode = cMap.putRecursive(newINode, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
+				newINode = cMap.putRecursive(
+					newINode, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
 				newINode = cMap.putRecursive(newINode, key, value, hash, level+1)
 				nodeCopy.setChild(newINode, pos)
 			}
@@ -71,7 +73,8 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 func (cMap *cMap) Delete(key []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root, cMap.deleteRecursive(root, key, 0, 0))
+		completed := cMap.compareAndSwap(&cMap.root, root,
+			cMap.deleteRecursive(root, key, 0, 0))
 		if completed {
 			return true
 		}
