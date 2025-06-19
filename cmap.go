@@ -1,9 +1,5 @@
 package cmap
 
-import (
-	"unsafe"
-)
-
 func NewMap(shards ...int) CMap {
 	if len(shards) == 1 && shards[0] > 1 {
 		return newShardedMap(shards[0])
@@ -18,15 +14,17 @@ func newShardedMap(shards int) CMap {
 	}
 	return s
 }
-
 func newCMap() CMap {
-	return &cMap{
+	m := cMap{
 		bitChunkSize: 5,
 		hashChunks:   6,
-		root: unsafe.Pointer(&node{
-			isLeaf:   false,
-			bitmap:   0,
-			children: []*node{},
-		}),
 	}
+
+	m.root.Store(&node{
+		isLeaf:   false,
+		bitmap:   0,
+		children: []*node{},
+	})
+
+	return &m
 }

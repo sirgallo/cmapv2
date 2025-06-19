@@ -19,7 +19,7 @@ func init() {
 }
 
 func BenchmarkPut(b *testing.B) {
-  m := cmap.NewMap(4096)
+  m := cmap.NewMap()
   b.RunParallel(func(pb *testing.PB) {
     rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
     for pb.Next() {
@@ -30,7 +30,7 @@ func BenchmarkPut(b *testing.B) {
 }
 
 func BenchmarkGet(b *testing.B) {
-  m := cmap.NewMap(4096)
+  m := cmap.NewMap()
   for _, k := range opKeys {
     m.Put(k, k)
   }
@@ -45,7 +45,7 @@ func BenchmarkGet(b *testing.B) {
 }
 
 func BenchmarkDelete(b *testing.B) {
-	m := cmap.NewMap(4096)
+	m := cmap.NewMap()
   for _, k := range opKeys {
     m.Put(k, k)
   }

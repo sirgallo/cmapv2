@@ -22,7 +22,7 @@ func init() {
 }
 
 func BenchmarkMap(b *testing.B) {
-	m := cmap.NewMap(4096)
+	m := cmap.NewMap()
 	for i := range 1000000 {
 		k := mixedKeys[i]
 		m.Put(k, k)

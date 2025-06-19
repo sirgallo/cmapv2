@@ -2,7 +2,6 @@ package cmap
 
 import (
 	"testing"
-	"unsafe"
 )
 
 func TestMurmur(t *testing.T) {
@@ -17,12 +16,13 @@ func TestMurmur(t *testing.T) {
 		m := &cMap{
 			bitChunkSize: 5,
 			hashChunks:   6,
-			root: unsafe.Pointer(&node{
-				isLeaf:   false,
-				bitmap:   0,
-				children: []*node{},
-			}),
 		}
+
+		m.root.Store(&node{
+			isLeaf:   false,
+			bitmap:   0,
+			children: []*node{},
+		})
 
 		key := []byte("hello")
 		levels := make([]int, 17)

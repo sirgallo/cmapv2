@@ -6,12 +6,10 @@ import (
 )
 
 func NewLNode(key []byte, value []byte) *node {
-	keyCopy := slices.Clone(key)
-	valueCopy := slices.Clone(value)
 	return &node{
 		isLeaf: true,
-		key:    keyCopy,
-		value:  valueCopy,
+		key:    slices.Clone(key),
+		value:  slices.Clone(value),
 	}
 }
 
@@ -25,26 +23,20 @@ func NewINode() *node {
 
 func (n *node) copyNode() *node {
 	if n.IsLeaf() {
-		key := slices.Clone(n.Key())
-		value := slices.Clone(n.Value())
 		return &node{
 			isLeaf: n.IsLeaf(),
-			key:    key,
-			value:  value,
+			key:    slices.Clone(n.Key()),
+			value:  slices.Clone(n.Value()),
 		}
 	} else {
-		var childrenCopy []*node
-		if len(n.children) > 0 {
-			childrenCopy = make([]*node, len(n.children))
-			copy(childrenCopy, n.children)
-		} else {
-			childrenCopy = []*node{}
-		}
-		return &node{
+		nodeCopy := &node{
 			isLeaf:   n.IsLeaf(),
 			bitmap:   n.Bitmap(),
-			children: childrenCopy,
 		}
+		if len(n.children) > 0 {
+			nodeCopy.children = append(nodeCopy.children, n.children...)
+		}
+		return nodeCopy
 	}
 }
 

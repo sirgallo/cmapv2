@@ -3,19 +3,16 @@ package cmap
 import (
 	"bytes"
 	"runtime"
-	"sync/atomic"
-	"unsafe"
 )
 
 func (cMap *cMap) Root(shard ...int) Node {
-	return (*node)(atomic.LoadPointer(&cMap.root))
+	return cMap.root.Load()
 }
 
 func (cMap *cMap) Put(key []byte, value []byte) bool {
 	for {
-		root := (*node)(atomic.LoadPointer(&cMap.root))
-		if cMap.compareAndSwap(&cMap.root, root,
-			cMap.putRecursive(root, key, value, 0, 0)) {
+		root := cMap.root.Load()
+		if cMap.compareAndSwap(root, cMap.putRecursive(root, key, value, 0, 0)) {
 			return true
 		}
 		runtime.Gosched()
@@ -55,7 +52,7 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 }
 
 func (cMap *cMap) Get(key []byte) []byte {
-	return cMap.getRecursive((*node)(atomic.LoadPointer(&cMap.root)), key, 0, 0)
+	return cMap.getRecursive(cMap.root.Load(), key, 0, 0)
 }
 
 func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) []byte {
@@ -74,9 +71,8 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 
 func (cMap *cMap) Delete(key []byte) bool {
 	for {
-		root := (*node)(atomic.LoadPointer(&cMap.root))
-		if cMap.compareAndSwap(&cMap.root, root,
-			cMap.deleteRecursive(root, key, 0, 0)) {
+		root := cMap.root.Load()
+		if cMap.compareAndSwap(root, cMap.deleteRecursive(root, key, 0, 0)) {
 			return true
 		}
 		runtime.Gosched()
@@ -108,6 +104,6 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 	return nodeCopy
 }
 
-func (cMap *cMap) compareAndSwap(nodePtr *unsafe.Pointer, currNode *node, nodeCopy *node) bool {
-	return atomic.CompareAndSwapPointer(nodePtr, unsafe.Pointer(currNode), unsafe.Pointer(nodeCopy))
+func (cMap *cMap) compareAndSwap(currNode *node, nodeCopy *node) bool {
+	return cMap.root.CompareAndSwap(currNode, nodeCopy)
 }

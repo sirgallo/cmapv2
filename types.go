@@ -1,7 +1,7 @@
 package cmap
 
 import (
-	"unsafe"
+	"sync/atomic"
 )
 
 type CMap interface {
@@ -12,7 +12,7 @@ type CMap interface {
 }
 
 type cMap struct {
-	root         unsafe.Pointer
+	root         atomic.Pointer[node]
 	bitChunkSize int
 	hashChunks   int
 }

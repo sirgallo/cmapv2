@@ -5,9 +5,7 @@ import (
 	"runtime"
 	"strconv"
 	"sync"
-	"sync/atomic"
 	"testing"
-	"unsafe"
 )
 
 func TestCMapRace(t *testing.T) {
@@ -85,24 +83,26 @@ func TestCMapRace(t *testing.T) {
 		m := &cMap{
 			bitChunkSize: 5,
 			hashChunks:   6,
-			root: unsafe.Pointer(&node{
-				isLeaf:   false,
-				bitmap:   0,
-				children: []*node{},
-			}),
 		}
+		m.root.Store(&node{
+			isLeaf:   false,
+			bitmap:   0,
+			children: []*node{},
+		})
+
 		const K = 1000
 		for i := range K {
 			k := []byte(fmt.Sprintf("k-%d", i))
 			m.Put(k, k)
 		}
 
-		oldRoot := atomic.LoadPointer(&m.root)
+		oldRoot := m.root.Load()
 		oldMap := &cMap{
 			bitChunkSize: m.bitChunkSize,
 			hashChunks:   m.hashChunks,
-			root:         oldRoot,
 		}
+
+		oldMap.root.Store(oldRoot)
 
 		var wg sync.WaitGroup
 		for range workerCount {
