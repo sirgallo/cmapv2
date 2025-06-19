@@ -14,8 +14,8 @@ func (cMap *cMap) Root(shard ...int) Node {
 func (cMap *cMap) Put(key []byte, value []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root, cMap.putRecursive(root, key, value, 0, 0))
-		if completed {
+		if cMap.compareAndSwap(&cMap.root, root,
+			cMap.putRecursive(root, key, value, 0, 0)) {
 			return true
 		}
 		runtime.Gosched()
@@ -25,7 +25,14 @@ func (cMap *cMap) Put(key []byte, value []byte) bool {
 func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash uint32, level int) *node {
 	hash = cMap.calculateHashForCurrentLevel(key, hash, level)
 	index := cMap.getSparseIndex(hash, level)
-	nodeCopy := currNode.copyNode()
+
+	var nodeCopy *node
+	if currNode == nil {
+		nodeCopy = NewINode()
+	} else {
+		nodeCopy = currNode.copyNode()
+	}
+
 	pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
 	if !IsBitSet(nodeCopy.Bitmap(), index) {
 		nodeCopy.setBitmap(SetBit(nodeCopy.Bitmap(), index))
@@ -35,9 +42,9 @@ func (cMap *cMap) putRecursive(currNode *node, key []byte, value []byte, hash ui
 			if bytes.Equal(key, nodeCopy.Child(pos).Key()) {
 				nodeCopy.setChild(NewLNode(key, value), pos)
 			} else {
-				newINode := cMap.putRecursive(NewINode(), nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1)
-				newINode = cMap.putRecursive(newINode, key, value, hash, level+1)
-				nodeCopy.setChild(newINode, pos)
+				nodeCopy.setChild(
+					cMap.putRecursive(
+						cMap.putRecursive(nil, nodeCopy.Child(pos).Key(), nodeCopy.Child(pos).Value(), 0, level+1), key, value, hash, level+1), pos)
 			}
 		} else {
 			nodeCopy.setChild(
@@ -68,8 +75,8 @@ func (cMap *cMap) getRecursive(node *node, key []byte, hash uint32, level int) [
 func (cMap *cMap) Delete(key []byte) bool {
 	for {
 		root := (*node)(atomic.LoadPointer(&cMap.root))
-		completed := cMap.compareAndSwap(&cMap.root, root, cMap.deleteRecursive(root, key, 0, 0))
-		if completed {
+		if cMap.compareAndSwap(&cMap.root, root,
+			cMap.deleteRecursive(root, key, 0, 0)) {
 			return true
 		}
 		runtime.Gosched()
@@ -80,6 +87,7 @@ func (cMap *cMap) deleteRecursive(currNode *node, key []byte, hash uint32, level
 	hash = cMap.calculateHashForCurrentLevel(key, hash, level)
 	index := cMap.getSparseIndex(hash, level)
 	nodeCopy := currNode.copyNode()
+
 	if IsBitSet(nodeCopy.Bitmap(), index) {
 		pos := cMap.getPosition(nodeCopy.Bitmap(), hash, level)
 		if nodeCopy.Child(pos).IsLeaf() {

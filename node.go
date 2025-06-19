@@ -24,16 +24,27 @@ func NewINode() *node {
 }
 
 func (n *node) copyNode() *node {
-	childrenCopy := make([]*node, len(n.children))
-	copy(childrenCopy, n.children)
-	key := slices.Clone(n.Key())
-	value := slices.Clone(n.Value())
-	return &node{
-		key:      key,
-		value:    value,
-		isLeaf:   n.IsLeaf(),
-		bitmap:   n.Bitmap(),
-		children: childrenCopy,
+	if n.IsLeaf() {
+		key := slices.Clone(n.Key())
+		value := slices.Clone(n.Value())
+		return &node{
+			isLeaf: n.IsLeaf(),
+			key:    key,
+			value:  value,
+		}
+	} else {
+		var childrenCopy []*node
+		if len(n.children) > 0 {
+			childrenCopy = make([]*node, len(n.children))
+			copy(childrenCopy, n.children)
+		} else {
+			childrenCopy = []*node{}
+		}
+		return &node{
+			isLeaf:   n.IsLeaf(),
+			bitmap:   n.Bitmap(),
+			children: childrenCopy,
+		}
 	}
 }
 
